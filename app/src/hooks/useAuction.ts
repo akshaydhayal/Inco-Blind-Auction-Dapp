@@ -69,7 +69,7 @@ export function useAuction() {
     if (!program) return [];
 
     try {
-      const accounts = await program.account.auction.all();
+      const accounts = await (program.account as any).auction.all();
       return accounts as unknown as {
         publicKey: PublicKey;
         account: AuctionAccount;
@@ -89,7 +89,7 @@ export function useAuction() {
 
       try {
         const [auctionPDA] = getAuctionPDA(auctionId);
-        const account = await program.account.auction.fetch(auctionPDA);
+        const account = await (program.account as any).auction.fetch(auctionPDA);
         return {
           publicKey: auctionPDA,
           account: account as unknown as AuctionAccount,
@@ -108,7 +108,7 @@ export function useAuction() {
       if (!program) return null;
 
       try {
-        const account = await program.account.auction.fetch(auctionPDA);
+        const account = await (program.account as any).auction.fetch(auctionPDA);
         return account as unknown as AuctionAccount;
       } catch (err) {
         console.error("Error fetching auction:", err);
@@ -128,7 +128,7 @@ export function useAuction() {
 
       try {
         const [bidPDA] = getBidPDA(auctionPDA, bidder);
-        const account = await program.account.bid.fetch(bidPDA);
+        const account = await (program.account as any).bid.fetch(bidPDA);
         return account as unknown as BidAccount;
       } catch {
         return null;

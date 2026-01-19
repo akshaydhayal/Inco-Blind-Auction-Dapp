@@ -24,9 +24,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen bg-[#0a0a0b] text-white font-sans`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased min-h-screen text-white font-sans bg-[#0a0a0b] overflow-x-hidden [background-attachment:fixed] [background-image:radial-gradient(at_0%_0%,rgba(99,102,241,0.15)_0px,transparent_50%),radial-gradient(at_100%_0%,rgba(139,92,246,0.15)_0px,transparent_50%),radial-gradient(at_100%_100%,rgba(236,72,153,0.1)_0px,transparent_50%),radial-gradient(at_0%_100%,rgba(59,130,246,0.1)_0px,transparent_50%)]`}
+        suppressHydrationWarning
       >
         <Wallet>{children}</Wallet>
       </body>
