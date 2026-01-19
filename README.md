@@ -1,15 +1,15 @@
-# Private Raffle
+# Blind Auction
 
-A confidential raffle system built on Solana using Inco Lightning rust SDK for encrypted compute on Solana. Players submit encrypted guesses, and the winning number remains hidden until verification, ensuring complete privacy throughout the game.
+A privacy-preserving blind auction system built on Solana using Inco Lightning rust SDK for encrypted computation. Bidders submit encrypted bids, and bid amounts remain completely private until the auction closes, ensuring complete privacy throughout the bidding process.
 
 ## Overview
 
-This program implements a simple number-guessing raffle (1-100) where:
+This program implements a blind auction where:
 
-- Player guesses are encrypted and hidden from everyone
-- The winning number is encrypted and hidden from everyone
-- Winner determination happens through encrypted comparison
-- Only the ticket owner can decrypt their result
+- Bid amounts are encrypted and hidden from everyone
+- Highest bid is determined through encrypted comparison
+- Winner's payment stays in vault, losers get refunded
+- Only bidders can decrypt their own bid and win status
 
 ## Architecture
 
@@ -17,56 +17,60 @@ This program implements a simple number-guessing raffle (1-100) where:
 
 | Data | Visibility |
 |------|------------|
-| Player's guess | Encrypted (only player can decrypt) |
-| Winning number | Encrypted (set by authority) |
-| Win/loss result | Encrypted (only ticket owner can decrypt) |
-| Prize amount | Encrypted (only ticket owner can decrypt) |
+| Bidder's bid amount | Encrypted (only bidder can decrypt) |
+| Highest bid | Encrypted (determined through encrypted comparison) |
+| Win/loss result | Encrypted (only bidder can decrypt) |
+| Refund amount | Encrypted (only bidder can decrypt) |
 
 ### Program Flow
 
 ```
-1. create_raffle    -> Authority creates raffle with ticket price
-2. buy_ticket        -> Player submits encrypted guess (1-100)
-3. draw_winner       -> Authority sets encrypted winning number
-4. check_winner      -> Encrypted comparison: guess == winning_number
-5. claim_prize       -> e_select(is_winner, prize, 0) computes encrypted prize
-6. withdraw_prize    -> On-chain signature verification, transfer if prize > 0
+1. create_auction    -> Authority creates auction with minimum bid and end time
+2. place_bid         -> Bidder submits encrypted bid amount + deposit
+3. close_auction     -> Authority closes auction after end time
+4. check_win         -> Encrypted comparison: bid >= highest_bid
+5. withdraw_bid      -> Winner pays (bid stays in vault), losers get refund
 ```
 
 ### Key Encrypted Operations
 
 - `new_euint128`: Create encrypted value from ciphertext
-- `e_eq`: Encrypted equality comparison
+- `e_ge`: Encrypted greater-than-or-equal comparison
 - `e_select`: Encrypted conditional selection
 - `allow`: Grant decryption permission to specific address
 - `is_validsignature`: Verify decryption proof on-chain
 
 ## Account Structures
 
-### Raffle
+### Auction
 
 ```rust
-pub struct Raffle {
+pub struct Auction {
     pub authority: Pubkey,
-    pub raffle_id: u64,
-    pub ticket_price: u64,
-    pub participant_count: u32,
+    pub auction_id: u64,
+    pub minimum_bid: u64,
+    pub end_time: i64,
+    pub bidder_count: u32,
     pub is_open: bool,
-    pub prize_claimed: bool,                // True when a winner has withdrawn
-    pub winning_number_handle: u128,        // Encrypted winning number (1-100)
+    pub is_closed: bool,
+    pub highest_bid_handle: u128,  // Encrypted highest bid
+    pub winner_determined: bool,
     pub bump: u8,
 }
 ```
 
-### Ticket
+### Bid
 
 ```rust
-pub struct Ticket {
-    pub raffle: Pubkey,
-    pub owner: Pubkey,
-    pub guess_handle: u128,       // Encrypted guess (1-100)
-    pub is_winner_handle: u128,   // Encrypted: guess == winning?
-    pub claimed: bool,            // Whether this ticket holder has withdrawn
+pub struct Bid {
+    pub auction: Pubkey,
+    pub bidder: Pubkey,
+    pub deposit_amount: u64,        // SOL deposited
+    pub bid_amount_handle: u128,     // Encrypted bid amount
+    pub is_winner_handle: u128,      // Encrypted: is this the highest bid?
+    pub refund_amount_handle: u128,   // Encrypted refund (0 for winner)
+    pub checked: bool,
+    pub withdrawn: bool,
     pub bump: u8,
 }
 ```
@@ -97,7 +101,7 @@ anchor build
 
 ```bash
 # Get program keypair address
-solana address -k target/deploy/keypair.json
+solana address -k target/deploy/blind_auction-keypair.json
 
 # Update program ID in lib.rs and Anchor.toml with the address above
 
@@ -112,15 +116,15 @@ anchor deploy --provider.cluster devnet
 
 ```bash
 # Run tests (after deployment)
-anchor test --skip-deploy
+anchor test
 ```
 
 ### Test Scenarios
 
-The test suite covers two scenarios:
+The test suite covers:
 
-1. **Winner Flow**: Player guesses correctly and withdraws prize
-2. **Non-Winner Flow**: Player guesses incorrectly and withdrawal fails
+1. **Winner Flow**: Bidder places highest bid, wins, and confirms payment
+2. **Loser Flow**: Bidder places lower bid, loses, and withdraws refund
 
 ## Usage
 
@@ -131,18 +135,18 @@ import { encryptValue } from "@inco/solana-sdk/encryption";
 import { decrypt } from "@inco/solana-sdk/attested-decrypt";
 import { hexToBuffer } from "@inco/solana-sdk/utils";
 
-// Encrypt guess
-const myGuess = 42;
-const encryptedGuess = await encryptValue(BigInt(myGuess));
+// Encrypt bid amount
+const myBid = 0.1; // SOL
+const encryptedBid = await encryptValue(BigInt(myBid * 1e9));
 
-// Buy ticket
+// Place bid
 await program.methods
-  .buyTicket(hexToBuffer(encryptedGuess))
+  .placeBid(hexToBuffer(encryptedBid), new BN(myBid * 1e9))
   .accounts({...})
   .rpc();
 
 // Decrypt result after checking
-const result = await decrypt([resultHandle], {
+const result = await decrypt([isWinnerHandle], {
   address: wallet.publicKey,
   signMessage: async (msg) => nacl.sign.detached(msg, wallet.secretKey),
 });
@@ -161,7 +165,7 @@ const [allowancePda] = PublicKey.findProgramAddressSync(
 );
 
 await program.methods
-  .checkWinner()
+  .checkWin()
   .accounts({...})
   .remainingAccounts([
     { pubkey: allowancePda, isSigner: false, isWritable: true },
@@ -172,10 +176,10 @@ await program.methods
 
 ### On-Chain Verification
 
-Prize withdrawal requires on-chain verification of the decryption proof:
+Bid withdrawal requires on-chain verification of the decryption proof:
 
 ```typescript
-const result = await decrypt([prizeHandle], {...});
+const result = await decrypt([isWinnerHandle], {...});
 
 // Build transaction with Ed25519 signature + withdraw instruction
 const tx = new Transaction();
@@ -200,6 +204,7 @@ Navigate to the app folder:
 ```bash
 cd app
 ```
+
 Install the dependencies:
 ```bash
 bun install
@@ -212,8 +217,3 @@ bun run dev
 ```
 
 The app will start on localhost:3000
-
-
-
-
-

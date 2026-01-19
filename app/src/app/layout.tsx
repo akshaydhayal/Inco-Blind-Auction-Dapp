@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Raffle",
-  description: "Raffle - powered by Inco",
+  title: "Blind Auction",
+  description: "Blind Auction - Privacy-preserving auctions powered by Inco",
 };
 
 export default function RootLayout({

@@ -16,8 +16,7 @@ export default function ConnectWallet() {
         </h1>
 
         <p className="text-white/40 text-lg md:text-xl max-w-md mx-auto mb-12">
-          Connect your Solana wallet to explore raffles, buy tickets, and win
-          amazing prizes.
+          Connect your Solana wallet to explore blind auctions, place encrypted bids, and participate in private auctions.
         </p>
 
         <button
@@ -56,7 +55,7 @@ export default function ConnectWallet() {
             />
           </div>
           <p className="text-xs text-white/20">
-            Privacy-preserving raffles with encrypted computation
+            Privacy-preserving blind auctions with encrypted computation
           </p>
         </div>
       </div>
