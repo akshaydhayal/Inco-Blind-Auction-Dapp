@@ -1,12 +1,12 @@
 [package]
-name = "private-raffle"
+name = "blind-auction"
 version = "0.1.0"
-description = "Private raffle using Inco Lightning "
+description = "Blind auction using Inco Lightning for private bids"
 edition = "2021"
 
 [lib]
 crate-type = ["cdylib", "lib"]
-name = "private_raffle"
+name = "blind_auction"
 
 [features]
 default = []
