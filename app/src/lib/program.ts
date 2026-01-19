@@ -3,7 +3,7 @@ import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 
 // Program ID from the deployed contract
 export const PROGRAM_ID = new PublicKey(
-  "HY5CHkW7FEvCMdZLKrQ4w2Vr6krGtnJ1Kttd2WPqW9WC"
+  "8Z2LM7Anbe8N4LdPgDG9ri4wS8uhEHZggUzovdxBYYMH"
 );
 
 // Inco Lightning Program ID
@@ -12,9 +12,9 @@ export const INCO_LIGHTNING_PROGRAM_ID = new PublicKey(
 );
 
 // IDL import
-import idl from "./idl.json";
+import idl from "./idl.json";     
 
-export type PrivateRaffleIDL = typeof idl;
+export type BlindAuctionIDL = typeof idl;
 
 export function getProgram(
   connection: Connection,
@@ -27,27 +27,27 @@ export function getProgram(
   return new Program(idl as any, provider);
 }
 
-// PDA derivation functions
-export function getRafflePDA(raffleId: BN): [PublicKey, number] {
+// PDA derivation functions for blind auction
+export function getAuctionPDA(auctionId: BN): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from("raffle"), raffleId.toArrayLike(Buffer, "le", 8)],
+    [Buffer.from("auction"), auctionId.toArrayLike(Buffer, "le", 8)],
     PROGRAM_ID
   );
 }
 
-export function getTicketPDA(
-  raffle: PublicKey,
-  buyer: PublicKey
+export function getBidPDA(
+  auction: PublicKey,
+  bidder: PublicKey
 ): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from("ticket"), raffle.toBuffer(), buyer.toBuffer()],
+    [Buffer.from("bid"), auction.toBuffer(), bidder.toBuffer()],
     PROGRAM_ID
   );
 }
 
-export function getVaultPDA(raffle: PublicKey): [PublicKey, number] {
+export function getVaultPDA(auction: PublicKey): [PublicKey, number] {
   return PublicKey.findProgramAddressSync(
-    [Buffer.from("vault"), raffle.toBuffer()],
+    [Buffer.from("vault"), auction.toBuffer()],
     PROGRAM_ID
   );
 }
@@ -58,25 +58,30 @@ export function handleToBuffer(handle: BN | bigint): Buffer {
   return bn.toArrayLike(Buffer, "le", 16);
 }
 
-// Raffle account type
-export interface RaffleAccount {
+// Auction account type
+export interface AuctionAccount {
   authority: PublicKey;
-  raffleId: BN;
-  ticketPrice: BN;
-  participantCount: number;
+  auctionId: BN;
+  minimumBid: BN;
+  endTime: BN;
+  bidderCount: number;
   isOpen: boolean;
-  prizeClaimed: boolean;
-  winningNumberHandle: BN;
+  isClosed: boolean;
+  highestBidHandle: BN;
+  winnerDetermined: boolean;
   bump: number;
 }
 
-// Ticket account type
-export interface TicketAccount {
-  raffle: PublicKey;
-  owner: PublicKey;
-  guessHandle: BN;
+// Bid account type
+export interface BidAccount {
+  auction: PublicKey;
+  bidder: PublicKey;
+  depositAmount: BN;
+  bidAmountHandle: BN;
   isWinnerHandle: BN;
-  claimed: boolean;
+  refundAmountHandle: BN;
+  checked: boolean;
+  withdrawn: boolean;
   bump: number;
 }
 

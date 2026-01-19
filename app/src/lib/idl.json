@@ -1,489 +1,568 @@
 {
-    "address": "HY5CHkW7FEvCMdZLKrQ4w2Vr6krGtnJ1Kttd2WPqW9WC",
-    "metadata": {
-      "name": "private_raffle",
-      "version": "0.1.0",
-      "spec": "0.1.0",
-      "description": "Private raffle using Inco Lightning "
+  "address": "8Z2LM7Anbe8N4LdPgDG9ri4wS8uhEHZggUzovdxBYYMH",
+  "metadata": {
+    "name": "blind_auction",
+    "version": "0.1.0",
+    "spec": "0.1.0",
+    "description": "Blind auction using Inco Lightning for private bids"
+  },
+  "instructions": [
+    {
+      "name": "check_win",
+      "discriminator": [
+        157,
+        39,
+        111,
+        82,
+        182,
+        11,
+        60,
+        97
+      ],
+      "accounts": [
+        {
+          "name": "bidder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction"
+        },
+        {
+          "name": "bid",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "inco_lightning_program",
+          "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
+        }
+      ],
+      "args": []
     },
-    "instructions": [
-      {
-        "name": "buy_ticket",
-        "discriminator": [
-          11,
-          24,
-          17,
-          193,
-          168,
-          116,
-          164,
-          169
-        ],
-        "accounts": [
-          {
-            "name": "buyer",
-            "writable": true,
-            "signer": true
-          },
-          {
-            "name": "raffle",
-            "writable": true
-          },
-          {
-            "name": "ticket",
-            "writable": true,
-            "pda": {
-              "seeds": [
-                {
-                  "kind": "const",
-                  "value": [
-                    116,
-                    105,
-                    99,
-                    107,
-                    101,
-                    116
-                  ]
-                },
-                {
-                  "kind": "account",
-                  "path": "raffle"
-                },
-                {
-                  "kind": "account",
-                  "path": "buyer"
-                }
-              ]
-            }
-          },
-          {
-            "name": "vault",
-            "writable": true,
-            "pda": {
-              "seeds": [
-                {
-                  "kind": "const",
-                  "value": [
-                    118,
-                    97,
-                    117,
-                    108,
-                    116
-                  ]
-                },
-                {
-                  "kind": "account",
-                  "path": "raffle"
-                }
-              ]
-            }
-          },
-          {
-            "name": "system_program",
-            "address": "11111111111111111111111111111111"
-          },
-          {
-            "name": "inco_lightning_program",
-            "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
+    {
+      "name": "close_auction",
+      "discriminator": [
+        225,
+        129,
+        91,
+        48,
+        215,
+        73,
+        203,
+        172
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction",
+          "writable": true
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "create_auction",
+      "discriminator": [
+        234,
+        6,
+        201,
+        246,
+        47,
+        219,
+        176,
+        107
+      ],
+      "accounts": [
+        {
+          "name": "authority",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  97,
+                  117,
+                  99,
+                  116,
+                  105,
+                  111,
+                  110
+                ]
+              },
+              {
+                "kind": "arg",
+                "path": "auction_id"
+              }
+            ]
           }
-        ],
-        "args": [
-          {
-            "name": "encrypted_guess",
-            "type": "bytes"
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              }
+            ]
           }
-        ]
-      },
-      {
-        "name": "check_winner",
-        "discriminator": [
-          246,
-          195,
-          208,
-          54,
-          162,
-          217,
-          84,
-          64
-        ],
-        "accounts": [
-          {
-            "name": "checker",
-            "writable": true,
-            "signer": true
-          },
-          {
-            "name": "raffle"
-          },
-          {
-            "name": "ticket",
-            "writable": true
-          },
-          {
-            "name": "system_program",
-            "address": "11111111111111111111111111111111"
-          },
-          {
-            "name": "inco_lightning_program",
-            "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "auction_id",
+          "type": "u64"
+        },
+        {
+          "name": "minimum_bid",
+          "type": "u64"
+        },
+        {
+          "name": "end_time",
+          "type": "i64"
+        }
+      ]
+    },
+    {
+      "name": "determine_winner",
+      "discriminator": [
+        73,
+        160,
+        161,
+        62,
+        27,
+        247,
+        166,
+        31
+      ],
+      "accounts": [
+        {
+          "name": "checker",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction",
+          "writable": true
+        },
+        {
+          "name": "bid",
+          "writable": true
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "inco_lightning_program",
+          "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
+        }
+      ],
+      "args": []
+    },
+    {
+      "name": "place_bid",
+      "discriminator": [
+        238,
+        77,
+        148,
+        91,
+        200,
+        151,
+        92,
+        146
+      ],
+      "accounts": [
+        {
+          "name": "bidder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction",
+          "writable": true
+        },
+        {
+          "name": "bid",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  98,
+                  105,
+                  100
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              },
+              {
+                "kind": "account",
+                "path": "bidder"
+              }
+            ]
           }
-        ],
-        "args": []
-      },
-      {
-        "name": "create_raffle",
-        "discriminator": [
-          226,
-          206,
-          159,
-          34,
-          213,
-          207,
-          98,
-          126
-        ],
-        "accounts": [
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "inco_lightning_program",
+          "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
+        }
+      ],
+      "args": [
+        {
+          "name": "encrypted_bid_amount",
+          "type": "bytes"
+        },
+        {
+          "name": "deposit_amount",
+          "type": "u64"
+        }
+      ]
+    },
+    {
+      "name": "withdraw_bid",
+      "discriminator": [
+        110,
+        53,
+        157,
+        195,
+        147,
+        100,
+        110,
+        73
+      ],
+      "accounts": [
+        {
+          "name": "bidder",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction",
+          "writable": true
+        },
+        {
+          "name": "bid",
+          "writable": true
+        },
+        {
+          "name": "vault",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  118,
+                  97,
+                  117,
+                  108,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              }
+            ]
+          }
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        },
+        {
+          "name": "inco_lightning_program",
+          "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
+        }
+      ],
+      "args": [
+        {
+          "name": "is_winner_handle",
+          "type": "bytes"
+        },
+        {
+          "name": "is_winner_plaintext",
+          "type": "bytes"
+        }
+      ]
+    }
+  ],
+  "accounts": [
+    {
+      "name": "Auction",
+      "discriminator": [
+        218,
+        94,
+        247,
+        242,
+        126,
+        233,
+        131,
+        81
+      ]
+    },
+    {
+      "name": "Bid",
+      "discriminator": [
+        143,
+        246,
+        48,
+        245,
+        42,
+        145,
+        180,
+        88
+      ]
+    }
+  ],
+  "errors": [
+    {
+      "code": 6000,
+      "name": "AuctionClosed",
+      "msg": "Auction is closed"
+    },
+    {
+      "code": 6001,
+      "name": "AuctionStillOpen",
+      "msg": "Auction is still open"
+    },
+    {
+      "code": 6002,
+      "name": "AuctionNotClosed",
+      "msg": "Auction has not been closed by authority"
+    },
+    {
+      "code": 6003,
+      "name": "AuctionEnded",
+      "msg": "Auction has already ended"
+    },
+    {
+      "code": 6004,
+      "name": "AuctionNotEnded",
+      "msg": "Auction has not ended yet"
+    },
+    {
+      "code": 6005,
+      "name": "BidTooLow",
+      "msg": "Bid amount is below minimum"
+    },
+    {
+      "code": 6006,
+      "name": "NoBidders",
+      "msg": "No bidders"
+    },
+    {
+      "code": 6007,
+      "name": "NotBidder",
+      "msg": "Not bidder"
+    },
+    {
+      "code": 6008,
+      "name": "AlreadyChecked",
+      "msg": "Already checked"
+    },
+    {
+      "code": 6009,
+      "name": "NotChecked",
+      "msg": "Bid not checked yet"
+    },
+    {
+      "code": 6010,
+      "name": "AlreadyWithdrawn",
+      "msg": "Already withdrawn"
+    },
+    {
+      "code": 6011,
+      "name": "NotWithdrawn",
+      "msg": "Not withdrawn yet"
+    },
+    {
+      "code": 6012,
+      "name": "NotWinner",
+      "msg": "Not the winner"
+    },
+    {
+      "code": 6013,
+      "name": "WinnerAlreadyDetermined",
+      "msg": "Winner already determined"
+    },
+    {
+      "code": 6014,
+      "name": "WinnerNotDetermined",
+      "msg": "Winner not determined yet"
+    },
+    {
+      "code": 6015,
+      "name": "Unauthorized",
+      "msg": "Unauthorized"
+    },
+    {
+      "code": 6016,
+      "name": "NoFunds",
+      "msg": "No funds in vault"
+    }
+  ],
+  "types": [
+    {
+      "name": "Auction",
+      "docs": [
+        "Auction account"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
           {
             "name": "authority",
-            "writable": true,
-            "signer": true
+            "type": "pubkey"
           },
           {
-            "name": "raffle",
-            "writable": true,
-            "pda": {
-              "seeds": [
-                {
-                  "kind": "const",
-                  "value": [
-                    114,
-                    97,
-                    102,
-                    102,
-                    108,
-                    101
-                  ]
-                },
-                {
-                  "kind": "arg",
-                  "path": "raffle_id"
-                }
-              ]
-            }
-          },
-          {
-            "name": "vault",
-            "writable": true,
-            "pda": {
-              "seeds": [
-                {
-                  "kind": "const",
-                  "value": [
-                    118,
-                    97,
-                    117,
-                    108,
-                    116
-                  ]
-                },
-                {
-                  "kind": "account",
-                  "path": "raffle"
-                }
-              ]
-            }
-          },
-          {
-            "name": "system_program",
-            "address": "11111111111111111111111111111111"
-          }
-        ],
-        "args": [
-          {
-            "name": "raffle_id",
+            "name": "auction_id",
             "type": "u64"
           },
           {
-            "name": "ticket_price",
+            "name": "minimum_bid",
             "type": "u64"
-          }
-        ]
-      },
-      {
-        "name": "draw_winner",
-        "docs": [
-          "Draw a random winning number (1-100) using on-chain randomness"
-        ],
-        "discriminator": [
-          250,
-          103,
-          118,
-          147,
-          219,
-          235,
-          169,
-          220
-        ],
-        "accounts": [
-          {
-            "name": "authority",
-            "writable": true,
-            "signer": true
           },
           {
-            "name": "raffle",
-            "writable": true
+            "name": "end_time",
+            "type": "i64"
           },
           {
-            "name": "system_program",
-            "address": "11111111111111111111111111111111"
+            "name": "bidder_count",
+            "type": "u32"
           },
           {
-            "name": "inco_lightning_program",
-            "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
-          }
-        ],
-        "args": []
-      },
-      {
-        "name": "withdraw_prize",
-        "docs": [
-          "Withdraw prize by proving winner status (is_winner_handle decryption)"
-        ],
-        "discriminator": [
-          125,
-          86,
-          6,
-          204,
-          176,
-          159,
-          61,
-          119
-        ],
-        "accounts": [
-          {
-            "name": "winner",
-            "writable": true,
-            "signer": true
+            "name": "is_open",
+            "type": "bool"
           },
           {
-            "name": "raffle",
-            "writable": true
+            "name": "is_closed",
+            "type": "bool"
           },
           {
-            "name": "ticket",
-            "writable": true
+            "name": "highest_bid_handle",
+            "type": "u128"
           },
           {
-            "name": "vault",
-            "writable": true,
-            "pda": {
-              "seeds": [
-                {
-                  "kind": "const",
-                  "value": [
-                    118,
-                    97,
-                    117,
-                    108,
-                    116
-                  ]
-                },
-                {
-                  "kind": "account",
-                  "path": "raffle"
-                }
-              ]
-            }
+            "name": "winner_determined",
+            "type": "bool"
           },
           {
-            "name": "instructions",
-            "address": "Sysvar1nstructions1111111111111111111111111"
-          },
-          {
-            "name": "system_program",
-            "address": "11111111111111111111111111111111"
-          },
-          {
-            "name": "inco_lightning_program",
-            "address": "5sjEbPiqgZrYwR31ahR6Uk9wf5awoX61YGg7jExQSwaj"
-          }
-        ],
-        "args": [
-          {
-            "name": "handle",
-            "type": "bytes"
-          },
-          {
-            "name": "plaintext",
-            "type": "bytes"
+            "name": "bump",
+            "type": "u8"
           }
         ]
       }
-    ],
-    "accounts": [
-      {
-        "name": "Raffle",
-        "discriminator": [
-          143,
-          133,
-          63,
-          173,
-          138,
-          10,
-          142,
-          200
+    },
+    {
+      "name": "Bid",
+      "docs": [
+        "Bid account - stores each bidder's encrypted bid"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "type": "pubkey"
+          },
+          {
+            "name": "bidder",
+            "type": "pubkey"
+          },
+          {
+            "name": "deposit_amount",
+            "type": "u64"
+          },
+          {
+            "name": "bid_amount_handle",
+            "type": "u128"
+          },
+          {
+            "name": "is_winner_handle",
+            "type": "u128"
+          },
+          {
+            "name": "refund_amount_handle",
+            "type": "u128"
+          },
+          {
+            "name": "checked",
+            "type": "bool"
+          },
+          {
+            "name": "withdrawn",
+            "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
         ]
-      },
-      {
-        "name": "Ticket",
-        "discriminator": [
-          41,
-          228,
-          24,
-          165,
-          78,
-          90,
-          235,
-          200
-        ]
       }
-    ],
-    "errors": [
-      {
-        "code": 6000,
-        "name": "RaffleClosed",
-        "msg": "Raffle is closed"
-      },
-      {
-        "code": 6001,
-        "name": "RaffleStillOpen",
-        "msg": "Raffle is still open"
-      },
-      {
-        "code": 6002,
-        "name": "NoWinningNumber",
-        "msg": "No winning number set"
-      },
-      {
-        "code": 6003,
-        "name": "NoParticipants",
-        "msg": "No participants"
-      },
-      {
-        "code": 6004,
-        "name": "NotOwner",
-        "msg": "Not ticket owner"
-      },
-      {
-        "code": 6005,
-        "name": "AlreadyClaimed",
-        "msg": "Already claimed"
-      },
-      {
-        "code": 6006,
-        "name": "NotChecked",
-        "msg": "Ticket not checked yet"
-      },
-      {
-        "code": 6007,
-        "name": "NotClaimed",
-        "msg": "Not claimed yet"
-      },
-      {
-        "code": 6008,
-        "name": "NotWinner",
-        "msg": "Not the winner"
-      },
-      {
-        "code": 6009,
-        "name": "Unauthorized",
-        "msg": "Unauthorized"
-      },
-      {
-        "code": 6010,
-        "name": "NoFunds",
-        "msg": "No funds in vault"
-      }
-    ],
-    "types": [
-      {
-        "name": "Raffle",
-        "docs": [
-          "Raffle account"
-        ],
-        "type": {
-          "kind": "struct",
-          "fields": [
-            {
-              "name": "authority",
-              "type": "pubkey"
-            },
-            {
-              "name": "raffle_id",
-              "type": "u64"
-            },
-            {
-              "name": "ticket_price",
-              "type": "u64"
-            },
-            {
-              "name": "participant_count",
-              "type": "u32"
-            },
-            {
-              "name": "is_open",
-              "type": "bool"
-            },
-            {
-              "name": "prize_claimed",
-              "type": "bool"
-            },
-            {
-              "name": "winning_number_handle",
-              "type": "u128"
-            },
-            {
-              "name": "bump",
-              "type": "u8"
-            }
-          ]
-        }
-      },
-      {
-        "name": "Ticket",
-        "docs": [
-          "Ticket account"
-        ],
-        "type": {
-          "kind": "struct",
-          "fields": [
-            {
-              "name": "raffle",
-              "type": "pubkey"
-            },
-            {
-              "name": "owner",
-              "type": "pubkey"
-            },
-            {
-              "name": "guess_handle",
-              "type": "u128"
-            },
-            {
-              "name": "is_winner_handle",
-              "type": "u128"
-            },
-            {
-              "name": "claimed",
-              "type": "bool"
-            },
-            {
-              "name": "bump",
-              "type": "u8"
-            }
-          ]
-        }
-      }
-    ]
+    }
+  ]
 }

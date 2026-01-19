@@ -2,42 +2,46 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useRaffle } from "@/hooks/useRaffle";
-import { RaffleAccount } from "@/lib/program";
+import { useAuction } from "@/hooks/useAuction";
+import { AuctionAccount } from "@/lib/program";
 import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 
 export default function HomePage() {
-  const { fetchRaffles } = useRaffle();
-  const [raffles, setRaffles] = useState<
-    { publicKey: PublicKey; account: RaffleAccount }[]
+  const { fetchAuctions } = useAuction();
+  const [auctions, setAuctions] = useState<
+    { publicKey: PublicKey; account: AuctionAccount }[]
   >([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const load = async () => {
       setLoading(true);
-      const data = await fetchRaffles();
-      setRaffles(data);
+      const data = await fetchAuctions();
+      setAuctions(data);
       setLoading(false);
     };
     load();
-  }, [fetchRaffles]);
+  }, [fetchAuctions]);
+
+  const formatDate = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+    return date.toLocaleString();
+  };
 
   return (
     <main className="pt-32 px-8 pb-20 max-w-6xl mx-auto">
       <h1 className="text-6xl md:text-8xl font-light tracking-tight leading-none mb-6">
-        Win <span className="text-[#3673F5]">Big</span>
+        Private <span className="text-[#3673F5]">Blind</span>
         <br />
-        Tonight
+        Auctions
       </h1>
       <p className="text-white/40 text-lg md:text-xl max-w-xl mb-16">
-        Premium raffles with transparent odds. Pick your lucky number and change
-        your life.
+        Place encrypted bids in complete privacy. Your bid amount remains hidden until the auction closes.
       </p>
 
       <section>
         <h2 className="text-xs uppercase tracking-[0.2em] text-white/30 mb-8">
-          Active Raffles
+          Active Auctions
         </h2>
 
         {loading ? (
@@ -53,54 +57,63 @@ export default function HomePage() {
               </div>
             ))}
           </div>
-        ) : raffles.length === 0 ? (
+        ) : auctions.length === 0 ? (
           <div className="text-center py-16">
-            <p className="text-white/40 mb-4">No raffles yet</p>
+            <p className="text-white/40 mb-4">No auctions yet</p>
             <Link
               href="/create"
               className="inline-block px-6 py-3 bg-[#3673F5] text-white text-sm font-medium rounded-full hover:bg-[#3673F5]/90 transition-all"
             >
-              Create the first raffle
+              Create the first auction
             </Link>
           </div>
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
-            {raffles.map((raffle) => (
+            {auctions.map((auction) => (
               <Link
-                key={raffle.publicKey.toBase58()}
-                href={`/raffle/${raffle.publicKey.toBase58()}`}
+                key={auction.publicKey.toBase58()}
+                href={`/auction/${auction.publicKey.toBase58()}`}
                 className="group relative bg-white/[0.02] border border-white/5 rounded-2xl p-6 hover:bg-white/[0.04] hover:border-white/10 transition-all duration-500"
               >
                 <div className="absolute top-6 right-6">
                   <span
                     className={`text-xs px-3 py-1 rounded-full border ${
-                      raffle.account.isOpen
+                      auction.account.isOpen && !auction.account.isClosed
                         ? "bg-[#3673F5]/10 text-[#3673F5] border-[#3673F5]/20"
                         : "bg-white/5 text-white/40 border-white/10"
                     }`}
                   >
-                    {raffle.account.isOpen ? "Open" : "Closed"}
+                    {auction.account.isClosed
+                      ? "Closed"
+                      : auction.account.isOpen
+                      ? "Open"
+                      : "Ended"}
                   </span>
                 </div>
                 <h3 className="text-2xl font-light mb-2 group-hover:text-[#3673F5] transition-colors">
-                  Raffle #{raffle.account.raffleId.toString().slice(-6)}
+                  Auction #{auction.account.auctionId.toString().slice(-6)}
                 </h3>
-                <p className="text-white/40 text-sm mb-6">
-                  {raffle.account.participantCount} participant
-                  {raffle.account.participantCount !== 1 ? "s" : ""}
+                <p className="text-white/40 text-sm mb-4">
+                  {auction.account.bidderCount} bidder
+                  {auction.account.bidderCount !== 1 ? "s" : ""}
                 </p>
-                <div className="flex justify-between items-end">
+                <div className="space-y-2 mb-4">
                   <div>
-                    <span className="text-3xl font-light">
-                      {(
-                        raffle.account.ticketPrice.toNumber() / LAMPORTS_PER_SOL
-                      ).toFixed(2)}{" "}
-                      SOL
+                    <span className="text-xs text-white/30">Min. Bid: </span>
+                    <span className="text-lg font-light">
+                      {(auction.account.minimumBid.toNumber() / LAMPORTS_PER_SOL).toFixed(3)} SOL
                     </span>
-                    <span className="text-xs text-white/30 ml-1">/ ticket</span>
                   </div>
+                  <div>
+                    <span className="text-xs text-white/30">Ends: </span>
+                    <span className="text-sm text-white/60">
+                      {formatDate(auction.account.endTime.toNumber())}
+                    </span>
+                  </div>
+                </div>
+                <div className="flex justify-between items-end">
                   <span className="text-xs text-white/30">
-                    ID: {raffle.account.raffleId.toString().slice(-8)}
+                    ID: {auction.account.auctionId.toString().slice(-8)}
                   </span>
                 </div>
               </Link>
