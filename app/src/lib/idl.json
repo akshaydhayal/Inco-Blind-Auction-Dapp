@@ -149,6 +149,28 @@
         {
           "name": "end_time",
           "type": "i64"
+        },
+        {
+          "name": "title",
+          "type": "string"
+        },
+        {
+          "name": "description",
+          "type": "string"
+        },
+        {
+          "name": "category",
+          "type": "string"
+        },
+        {
+          "name": "image_url",
+          "type": "string"
+        },
+        {
+          "name": "tags",
+          "type": {
+            "vec": "string"
+          }
         }
       ]
     },
@@ -463,6 +485,11 @@
       "code": 6016,
       "name": "NoFunds",
       "msg": "No funds in vault"
+    },
+    {
+      "code": 6017,
+      "name": "InvalidInput",
+      "msg": "Invalid input: string length exceeds maximum"
     }
   ],
   "types": [
@@ -513,6 +540,28 @@
           {
             "name": "bump",
             "type": "u8"
+          },
+          {
+            "name": "title",
+            "type": "string"
+          },
+          {
+            "name": "description",
+            "type": "string"
+          },
+          {
+            "name": "category",
+            "type": "string"
+          },
+          {
+            "name": "image_url",
+            "type": "string"
+          },
+          {
+            "name": "tags",
+            "type": {
+              "vec": "string"
+            }
           }
         ]
       }

@@ -11,13 +11,18 @@ import { TxStatus } from "@/components/tx-link";
 export default function CreatePage() {
   const router = useRouter();
   const { createAuction, loading, error } = useAuction();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState("");
+  const [imageUrl, setImageUrl] = useState("");
+  const [tags, setTags] = useState("");
   const [minimumBid, setMinimumBid] = useState("");
   const [duration, setDuration] = useState("24");
   const [txHash, setTxHash] = useState<string | null>(null);
   const [txStatus, setTxStatus] = useState<string | null>(null);
 
   const handleSubmit = async () => {
-    if (!minimumBid || !duration) return;
+    if (!title || !description || !category || !imageUrl || !minimumBid || !duration) return;
 
     setTxStatus("Creating auction...");
     setTxHash(null);
@@ -26,8 +31,20 @@ export default function CreatePage() {
     const minBidLamports = new BN(parseFloat(minimumBid) * LAMPORTS_PER_SOL);
     const durationHours = parseInt(duration);
     const endTime = new BN(Math.floor(Date.now() / 1000) + durationHours * 3600);
+    
+    // Parse tags (comma-separated)
+    const tagsArray = tags.split(",").map(tag => tag.trim()).filter(tag => tag.length > 0);
 
-    const tx = await createAuction(auctionId, minBidLamports, endTime);
+    const tx = await createAuction(
+      auctionId, 
+      minBidLamports, 
+      endTime,
+      title,
+      description,
+      category,
+      imageUrl,
+      tagsArray
+    );
 
     if (tx) {
       setTxHash(tx);
@@ -96,7 +113,96 @@ export default function CreatePage() {
             <div className="space-y-4">
               <div>
                 <label className="block text-xs font-bold text-white/90 mb-2">
-                  Minimum Bid Amount (SOL)
+                  Auction Title *
+                </label>
+                <input
+                  type="text"
+                  placeholder="e.g., Rare NFT Collection #123"
+                  maxLength={100}
+                  className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm font-semibold"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                />
+                <p className="mt-1 text-xs text-white/40 text-right">{title.length}/100</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-white/90 mb-2">
+                  Description *
+                </label>
+                <textarea
+                  placeholder="Describe what you're auctioning..."
+                  maxLength={1000}
+                  rows={4}
+                  className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm font-semibold resize-none"
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                />
+                <p className="mt-1 text-xs text-white/40 text-right">{description.length}/1000</p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-white/90 mb-2">
+                  Category *
+                </label>
+                <select
+                  className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm font-semibold"
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value)}
+                >
+                  <option value="">Select a category</option>
+                  <option value="NFTs">NFTs</option>
+                  <option value="Physical Items">Physical Items</option>
+                  <option value="Digital Goods">Digital Goods</option>
+                  <option value="Services">Services</option>
+                  <option value="Collectibles">Collectibles</option>
+                  <option value="Art">Art</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-white/90 mb-2">
+                  Image URL *
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  maxLength={200}
+                  className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm font-semibold"
+                  value={imageUrl}
+                  onChange={(e) => setImageUrl(e.target.value)}
+                />
+                <p className="mt-2 text-xs text-white/50 flex items-center gap-1.5">
+                  <svg className="w-3 h-3 flex-shrink-0 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <span>Provide a direct link to your image</span>
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-white/90 mb-2">
+                  Tags (comma-separated)
+                </label>
+                <input
+                  type="text"
+                  placeholder="rare, collectible, vintage"
+                  className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-4 py-2.5 text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm font-semibold"
+                  value={tags}
+                  onChange={(e) => setTags(e.target.value)}
+                />
+                <p className="mt-2 text-xs text-white/50 flex items-center gap-1.5">
+                  <svg className="w-3 h-3 flex-shrink-0 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+                  </svg>
+                  <span>Separate tags with commas (max 10 tags, 30 chars each)</span>
+                </p>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-white/90 mb-2">
+                  Minimum Bid Amount (SOL) *
                 </label>
                 <div className="relative">
                   <input
@@ -144,7 +250,7 @@ export default function CreatePage() {
 
               <button
                 onClick={handleSubmit}
-                disabled={loading || !minimumBid || !duration || !!txHash}
+                disabled={loading || !title || !description || !category || !imageUrl || !minimumBid || !duration || !!txHash}
                 className={`w-full px-6 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 text-white font-black rounded-xl hover:shadow-lg hover:shadow-indigo-500/50 transition-all duration-300 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 text-sm overflow-hidden relative group`}
               >
                 <span className="relative z-10">

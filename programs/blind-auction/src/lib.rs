@@ -19,9 +19,14 @@ pub mod blind_auction {
         ctx: Context<CreateAuction>, 
         auction_id: u64, 
         minimum_bid: u64,
-        end_time: i64
+        end_time: i64,
+        title: String,
+        description: String,
+        category: String,
+        image_url: String,
+        tags: Vec<String>
     ) -> Result<()> {
-        instructions::create_auction::handler(ctx, auction_id, minimum_bid, end_time)
+        instructions::create_auction::handler(ctx, auction_id, minimum_bid, end_time, title, description, category, image_url, tags)
     }
 
     pub fn place_bid<'info>(

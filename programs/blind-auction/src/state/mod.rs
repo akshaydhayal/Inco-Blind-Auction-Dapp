@@ -13,10 +13,21 @@ pub struct Auction {
     pub highest_bid_handle: u128,        // Encrypted highest bid amount
     pub winner_determined: bool,         // Has winner been determined?
     pub bump: u8,
+    // Metadata fields
+    pub title: String,                  // Auction title (max 100 chars)
+    pub description: String,            // Auction description (max 1000 chars)
+    pub category: String,               // Auction category (max 50 chars)
+    pub image_url: String,              // Image URL (max 200 chars)
+    pub tags: Vec<String>,              // Tags (max 10 tags, each max 30 chars)
 }
 
 impl Auction {
-    pub const SIZE: usize = 8 + 32 + 8 + 8 + 8 + 4 + 1 + 1 + 16 + 1 + 1 + 32;
+    // Base size: 8 (discriminator) + 32 (authority) + 8 (auction_id) + 8 (minimum_bid) + 8 (end_time) 
+    // + 4 (bidder_count) + 1 (is_open) + 1 (is_closed) + 16 (highest_bid_handle) + 1 (winner_determined) 
+    // + 1 (bump) = 87 bytes
+    // Metadata: 4+100 (title) + 4+1000 (description) + 4+50 (category) + 4+200 (image_url) 
+    // + 4+10*(4+30) (tags) = 104 + 1004 + 54 + 204 + 344 = 1710 bytes
+    pub const SIZE: usize = 8 + 32 + 8 + 8 + 8 + 4 + 1 + 1 + 16 + 1 + 1 + 4 + 100 + 4 + 1000 + 4 + 50 + 4 + 200 + 4 + 10 * (4 + 30);
 }
 
 /// Bid account - stores each bidder's encrypted bid

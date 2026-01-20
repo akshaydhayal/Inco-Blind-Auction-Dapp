@@ -80,6 +80,7 @@ export default function ConnectWallet() {
               width={64}
               height={20}
               className="opacity-80 hover:opacity-100 transition-opacity"
+              unoptimized
             />
           </div>
           <p className="text-xs sm:text-sm text-white/40 max-w-md">

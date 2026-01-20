@@ -142,7 +142,12 @@ export function useAuction() {
     async (
       auctionId: BN,
       minimumBid: BN,
-      endTime: BN
+      endTime: BN,
+      title: string,
+      description: string,
+      category: string,
+      imageUrl: string,
+      tags: string[]
     ): Promise<string | null> => {
       if (!program || !publicKey) {
         setError("Wallet not connected");
@@ -157,7 +162,7 @@ export function useAuction() {
         const [vaultPDA] = getVaultPDA(auctionPDA);
 
         const tx = await program.methods
-          .createAuction(auctionId, minimumBid, endTime)
+          .createAuction(auctionId, minimumBid, endTime, title, description, category, imageUrl, tags)
           .accounts({
             authority: publicKey,
             auction: auctionPDA,

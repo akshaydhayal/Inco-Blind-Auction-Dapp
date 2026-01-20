@@ -293,7 +293,21 @@ export default function AuctionDetailPage() {
           {/* Left Column - Auction Info */}
           <div className="space-y-6">
             <div className="rounded-3xl p-6 sm:p-8 lg:p-10 border border-white/15 bg-white/10 backdrop-blur-2xl backdrop-saturate-150">
-              <div className="flex items-center justify-between mb-6 sm:mb-8">
+              {/* Image */}
+              {auction.imageUrl && (
+                <div className="relative w-full h-48 sm:h-64 mb-6 rounded-2xl overflow-hidden bg-white/5 border border-white/10">
+                  <img
+                    src={auction.imageUrl}
+                    alt={auction.title || "Auction image"}
+                    className="w-full h-full object-cover"
+                    onError={(e) => {
+                      (e.target as HTMLImageElement).style.display = 'none';
+                    }}
+                  />
+                </div>
+              )}
+
+              <div className="flex items-center justify-between mb-4 sm:mb-6">
                 <span
                   className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-black ${
                     isOpen
@@ -303,16 +317,46 @@ export default function AuctionDetailPage() {
                 >
                   {auction.isClosed ? "Closed" : isOpen ? "● Live" : "Ended"}
                 </span>
-                {isAuthority && (
-                  <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-400 text-xs font-black rounded-full border-2 border-indigo-500/40">
-                    Authority
-                  </span>
-                )}
+                <div className="flex items-center gap-2">
+                  {auction.category && (
+                    <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/10 text-white/80 text-xs font-semibold rounded-full border border-white/20">
+                      {auction.category}
+                    </span>
+                  )}
+                  {isAuthority && (
+                    <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-400 text-xs font-black rounded-full border-2 border-indigo-500/40">
+                      Authority
+                    </span>
+                  )}
+                </div>
               </div>
 
-            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black mb-4 sm:mb-6 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                Auction #{auction.auctionId.toString().slice(-6)}
+              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 sm:mb-4 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
+                {auction.title || `Auction #${auction.auctionId.toString().slice(-6)}`}
               </h1>
+
+              {/* Description */}
+              {auction.description && (
+                <div className="mb-4 sm:mb-6">
+                  <p className="text-sm sm:text-base text-white/70 leading-relaxed">
+                    {auction.description}
+                  </p>
+                </div>
+              )}
+
+              {/* Tags */}
+              {auction.tags && auction.tags.length > 0 && (
+                <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
+                  {auction.tags.map((tag, index) => (
+                    <span
+                      key={index}
+                      className="px-2.5 py-1 text-xs font-semibold text-indigo-300 bg-indigo-500/10 border border-indigo-500/30 rounded-full"
+                    >
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
 
               <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
                 <div className="flex items-center justify-between py-3 sm:py-4 border-b-2 border-white/10">

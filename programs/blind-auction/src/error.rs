@@ -36,4 +36,6 @@ pub enum AuctionError {
     Unauthorized,
     #[msg("No funds in vault")]
     NoFunds,
+    #[msg("Invalid input: string length exceeds maximum")]
+    InvalidInput,
 }

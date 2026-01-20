@@ -70,6 +70,11 @@ export interface AuctionAccount {
   highestBidHandle: BN;
   winnerDetermined: boolean;
   bump: number;
+  title: string;
+  description: string;
+  category: string;
+  imageUrl: string;
+  tags: string[];
 }
 
 // Bid account type

@@ -148,7 +148,16 @@ describe("blind-auction", () => {
 
   it("1. Create auction", async () => {
     const tx = await program.methods
-      .createAuction(new anchor.BN(auctionId), new anchor.BN(MINIMUM_BID), new anchor.BN(END_TIME))
+      .createAuction(
+        new anchor.BN(auctionId),
+        new anchor.BN(MINIMUM_BID),
+        new anchor.BN(END_TIME),
+        "Test Auction",
+        "This is a test auction for blind bidding",
+        "NFTs",
+        "https://example.com/image.jpg",
+        ["test", "auction", "blind"]
+      )
       .accounts({
         authority: wallet.publicKey,
         auction: auctionPda,
@@ -158,6 +167,7 @@ describe("blind-auction", () => {
       .rpc();
 
     console.log("Auction created:", tx);
+    console.log("   Title: Test Auction");
     console.log("   Minimum bid: 0.01 SOL");
     console.log("   End time:", new Date(END_TIME * 1000).toISOString());
   });

@@ -22,28 +22,34 @@ export default function Navbar() {
               className="text-xl sm:text-2xl font-black tracking-tight transition-transform hover:scale-105"
             >
               <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                auction
+                BlindBids
               </span>
               <span className="text-indigo-400">.</span>
             </Link>
-            <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl backdrop-saturate-150">
-              <span className="text-[9px] uppercase tracking-wider text-white/50 font-bold">
-                Powered by
-              </span>
-              <Link 
-                href="https://inco.org" 
-                target="_blank" 
-                className="flex items-center gap-1.5 hover:opacity-80 transition-opacity group"
-              >
-                <Image
-                  src="/logo.png"
-                  alt="Inco"
-                  width={16}
-                  height={16}
-                  className="opacity-90 group-hover:opacity-100 transition-opacity"
-                />
-                <p className="text-xs text-white/60 font-semibold group-hover:text-white transition-colors">Inco</p>
-              </Link>
+            <div className="hidden sm:flex items-center gap-2">
+              <div className="px-2.5 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-xl backdrop-saturate-150">
+                <span className="text-[9px] font-bold text-indigo-400 uppercase tracking-wider">Private & Encrypted</span>
+              </div>
+              <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl backdrop-saturate-150">
+                <span className="text-[9px] uppercase tracking-wider text-white/50 font-bold">
+                  Powered by
+                </span>
+                <Link 
+                  href="https://inco.org" 
+                  target="_blank" 
+                  className="flex items-center gap-1.5 hover:opacity-80 transition-opacity group"
+                >
+                  <Image
+                    src="/logo.png"
+                    alt="Inco"
+                    width={20}
+                    height={20}
+                    className="opacity-90 group-hover:opacity-100 transition-opacity"
+                    unoptimized
+                  />
+                  <p className="text-xs text-white/60 font-semibold group-hover:text-white transition-colors">Inco</p>
+                </Link>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-2 sm:gap-3">
