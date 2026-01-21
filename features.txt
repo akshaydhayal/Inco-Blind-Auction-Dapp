@@ -33,7 +33,7 @@ Analytics & Insights
 - Similar Auctions — Show related items 
 
 Social Features
-- Comments/Questions — Public Q&A section
+- Comments/Questions — Public Q&A section          
 
 Implementation Approach
 Option 3: Hybrid

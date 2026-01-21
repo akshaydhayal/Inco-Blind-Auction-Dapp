@@ -172,18 +172,18 @@ export function CreateAuctionModal({ isOpen, onClose }: CreateAuctionModalProps)
                 Category *
               </label>
               <select
-                className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm"
+                className="w-full bg-white/5 border-2 border-white/10 rounded-xl px-4 py-2 text-white focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all text-sm [color-scheme:dark]"
                 value={category}
                 onChange={(e) => setCategory(e.target.value)}
               >
-                <option value="">Select category</option>
-                <option value="NFTs">NFTs</option>
-                <option value="Physical Items">Physical Items</option>
-                <option value="Digital Goods">Digital Goods</option>
-                <option value="Services">Services</option>
-                <option value="Collectibles">Collectibles</option>
-                <option value="Art">Art</option>
-                <option value="Other">Other</option>
+                <option value="" className="bg-neutral-900 text-white">Select category</option>
+                <option value="NFTs" className="bg-neutral-900 text-white">NFTs</option>
+                <option value="Physical Items" className="bg-neutral-900 text-white">Physical Items</option>
+                <option value="Digital Goods" className="bg-neutral-900 text-white">Digital Goods</option>
+                <option value="Services" className="bg-neutral-900 text-white">Services</option>
+                <option value="Collectibles" className="bg-neutral-900 text-white">Collectibles</option>
+                <option value="Art" className="bg-neutral-900 text-white">Art</option>
+                <option value="Other" className="bg-neutral-900 text-white">Other</option>
               </select>
             </div>
 

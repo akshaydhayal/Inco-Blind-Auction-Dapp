@@ -277,20 +277,20 @@ export default function AuctionDetailPage() {
   const canClose = isAuthority && !auction.isClosed && isEnded && auction.bidderCount > 0;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 px-8">
         {/* Back Button */}
-        <Link href="/" className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors mb-6">
+        <Link href="/" className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors mb-4">
           ← Back to All Auctions
         </Link>
 
         {error && (
-          <div className="rounded border border-yellow-800 bg-yellow-950/50 text-yellow-200 px-4 py-3 mb-6">
+          <div className="rounded border border-yellow-800 bg-yellow-950/50 text-yellow-200 px-3 py-2 mb-4 text-sm">
             {error}
           </div>
         )}
 
         {txStatus && (
-          <div className="mb-6">
+          <div className="mb-4">
             <TxStatus
               status={txStatus}
               txHash={lastTxHash}
@@ -301,9 +301,9 @@ export default function AuctionDetailPage() {
         )}
 
         {/* Main Content Grid */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {/* Left: Image and Stats */}
-          <div className="space-y-4">
+          <div className="space-y-3">
             {/* Image */}
             <div className="aspect-video w-full rounded-lg border border-neutral-800 bg-neutral-900 overflow-hidden">
               {auction.imageUrl ? (
@@ -323,22 +323,22 @@ export default function AuctionDetailPage() {
             </div>
 
             {/* Auction Stats Cards */}
-            <div className="grid grid-cols-2 gap-4">
-              <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-3">
                 <div className="text-xs text-neutral-500 mb-1">Auction ID</div>
-                <div className="text-2xl font-bold font-mono">#{auction.auctionId.toString().slice(-6)}</div>
+                <div className="text-xl font-bold font-mono">#{auction.auctionId.toString().slice(-6)}</div>
               </div>
-              <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4">
+              <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-3">
                 <div className="text-xs text-neutral-500 mb-1">Bidders</div>
-                <div className="text-2xl font-bold text-green-400">{auction.bidderCount}</div>
+                <div className="text-xl font-bold text-green-400">{auction.bidderCount}</div>
               </div>
             </div>
 
             {/* End Time Info with Countdown */}
-            <div className="rounded-lg border border-neutral-700 bg-neutral-900/50 p-4 space-y-3">
-              <div className="text-sm font-medium mb-2">Valid Until</div>
+            <div className="rounded-lg border border-neutral-700 bg-neutral-900/50 p-3 space-y-2">
+              <div className="text-xs font-medium mb-1">Valid Until</div>
               <div className="flex items-center gap-2">
-                <span className="text-lg">
+                <span className="text-sm">
                   {isExpired || auction.isClosed ? '⏰' : '📅'}
                 </span>
                 <div>
@@ -389,9 +389,9 @@ export default function AuctionDetailPage() {
 
             {/* Category and Tags */}
             {(auction.category || (auction.tags && auction.tags.length > 0)) && (
-              <div className="rounded-lg border border-neutral-800 p-4 bg-neutral-900/30">
-                <div className="text-sm font-medium mb-3">📋 Details</div>
-                <div className="space-y-2 text-sm">
+              <div className="rounded-lg border border-neutral-800 p-3 bg-neutral-900/30">
+                <div className="text-xs font-medium mb-2">📋 Details</div>
+                <div className="space-y-1.5 text-xs">
                   {auction.category && (
                     <div className="flex justify-between">
                       <span className="text-neutral-500">Category</span>
@@ -416,17 +416,17 @@ export default function AuctionDetailPage() {
           </div>
 
           {/* Right: Details */}
-          <div className="space-y-6">
+          <div className="space-y-4">
             {/* Title and Status Badge */}
             <div>
-              <div className="flex items-start justify-between gap-4 mb-3">
-                <h1 className="text-4xl font-bold">{auction.title || `Auction #${auction.auctionId.toString().slice(-6)}`}</h1>
-                <div className={`px-4 py-2 rounded-lg border ${
+              <div className="flex items-start justify-between gap-3 mb-2">
+                <h1 className="text-2xl font-bold">{auction.title || `Auction #${auction.auctionId.toString().slice(-6)}`}</h1>
+                <div className={`px-2 py-0 rounded-md border ${
                   isOpen && !isExpired
                     ? 'bg-green-900/50 border-green-700'
                     : 'bg-neutral-800 border-neutral-700'
                 }`}>
-                  <div className={`text-2xl font-bold ${
+                  <div className={`text-base font-semibold ${
                     isOpen && !isExpired ? 'text-green-200' : 'text-neutral-400'
                   }`}>
                     {isOpen && !isExpired ? '● LIVE' : auction.isClosed ? 'CLOSED' : 'ENDED'}
@@ -434,37 +434,37 @@ export default function AuctionDetailPage() {
                 </div>
               </div>
               {auction.description && (
-                <p className="text-lg text-neutral-300">{auction.description}</p>
+                <p className="text-sm text-neutral-300">{auction.description}</p>
               )}
             </div>
 
             {/* Minimum Bid Info */}
-            <div className="rounded-lg border border-neutral-700 bg-neutral-900/50 p-4">
-              <div className="flex items-center justify-between mb-2">
-                <div className="text-sm font-medium">Minimum Bid</div>
-                <div className="text-2xl font-bold text-green-400">{minBid.toFixed(3)} SOL</div>
+             <div className="rounded-lg border border-neutral-700 bg-neutral-900/50 px-3 py-1">
+              <div className="flex items-center justify-between mb-1">
+                <div className="text-xs font-medium">Minimum Bid</div>
+                <div className="text-xl font-bold text-green-400">{minBid.toFixed(3)} SOL</div>
               </div>
-              <div className="text-xs text-neutral-500 mt-1">
+               <div className="text-xs text-neutral-500 mt-1">
                 All bids are encrypted and remain private until auction closes
-              </div>
-            </div>
+              </div> 
+            </div> 
 
             {/* Place Bid Section */}
             {canPlaceBid && (
-              <div className="rounded-lg border border-purple-800/50 bg-purple-950/30 p-6">
-                <div className="text-lg font-medium text-purple-200 mb-3">
+              <div className="rounded-lg border border-purple-800/50 bg-purple-950/30 p-4">
+                <div className="text-sm font-medium text-purple-200 mb-2">
                   💰 Place Encrypted Bid
                 </div>
-                <p className="text-sm text-neutral-400 mb-4">
-                  Enter your bid amount. Your bid will be encrypted and remain private until the auction closes.
+                <p className="text-xs text-neutral-400 mb-3">
+                  Enter your bid amount. Your bid will be encrypted & remain private until the auction closes.
                 </p>
-                <div className="space-y-3 mb-4">
+                <div className="space-y-2 mb-3">
                   <input
                     type="number"
                     placeholder={`Minimum: ${minBid.toFixed(3)} SOL`}
                     step="0.001"
                     min={minBid}
-                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 text-neutral-200 focus:border-purple-600 focus:outline-none"
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-neutral-200 focus:border-purple-600 focus:outline-none"
                     value={bidAmount}
                     onChange={(e) => setBidAmount(e.target.value)}
                   />
@@ -472,7 +472,7 @@ export default function AuctionDetailPage() {
                 <button
                   onClick={handlePlaceBid}
                   disabled={loading || !bidAmount || parseFloat(bidAmount) < minBid}
-                  className="w-full px-6 py-4 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? '⏳ Placing Bid...' : '💰 Place Encrypted Bid'}
                 </button>
@@ -481,17 +481,17 @@ export default function AuctionDetailPage() {
 
             {/* Check Win Status */}
             {canCheckWin && (
-              <div className="rounded-lg border border-blue-800/50 bg-blue-950/30 p-6">
-                <div className="text-lg font-medium text-blue-200 mb-3">
+              <div className="rounded-lg border border-blue-800/50 bg-blue-950/30 p-4">
+                <div className="text-sm font-medium text-blue-200 mb-2">
                   🔍 Check Win Status
                 </div>
-                <p className="text-sm text-neutral-400 mb-4">
+                <p className="text-xs text-neutral-400 mb-3">
                   Check if you won the auction. This will decrypt your win status on-chain.
                 </p>
                 <button
                   onClick={handleCheckWin}
                   disabled={loading || decrypting}
-                  className="w-full px-6 py-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full px-4 py-2.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {decrypting ? '⏳ Checking...' : '🔍 Check Win Status'}
                 </button>
@@ -500,17 +500,17 @@ export default function AuctionDetailPage() {
 
             {/* Decrypt Winner */}
             {hasChecked && !decryptResult && (
-              <div className="rounded-lg border border-amber-800/50 bg-amber-950/30 p-6">
-                <div className="text-lg font-medium text-amber-200 mb-3">
+              <div className="rounded-lg border border-amber-800/50 bg-amber-950/30 p-4">
+                <div className="text-sm font-medium text-amber-200 mb-2">
                   🔓 Decrypt Winner Status
                 </div>
-                <p className="text-sm text-neutral-400 mb-4">
+                <p className="text-xs text-neutral-400 mb-3">
                   Decrypt your win status to see if you won the auction.
                 </p>
                 <button
                   onClick={handleDecryptWinner}
                   disabled={decrypting}
-                  className="w-full px-6 py-4 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full px-4 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {decrypting ? '⏳ Decrypting...' : '🔓 Decrypt Winner Status'}
                 </button>
@@ -519,17 +519,17 @@ export default function AuctionDetailPage() {
 
             {/* Winner/Loser Status */}
             {decryptResult && (
-              <div className={`rounded-lg border p-6 ${
+              <div className={`rounded-lg border p-4 ${
                 isWinner
                   ? 'border-green-800/50 bg-green-950/30'
                   : 'border-red-800/50 bg-red-950/30'
               }`}>
-                <div className={`text-lg font-medium mb-3 ${
+                <div className={`text-sm font-medium mb-2 ${
                   isWinner ? 'text-green-200' : 'text-red-200'
                 }`}>
                   {isWinner ? '🎉 You Won!' : '😔 You Did Not Win'}
                 </div>
-                <p className="text-sm text-neutral-400 mb-4">
+                <p className="text-xs text-neutral-400 mb-3">
                   {isWinner
                     ? 'Congratulations! You had the highest bid. Your bid amount stays in the vault as payment.'
                     : 'You did not win this auction. You can withdraw your bid amount.'}
@@ -538,13 +538,13 @@ export default function AuctionDetailPage() {
                   <button
                     onClick={handleWithdraw}
                     disabled={loading}
-                    className="w-full px-6 py-4 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="w-full px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     {loading ? '⏳ Withdrawing...' : isWinner ? '✅ Confirm Payment' : '💰 Withdraw Bid'}
                   </button>
                 )}
                 {hasWithdrawn && (
-                  <div className="text-sm text-neutral-400 text-center mt-2">
+                  <div className="text-xs text-neutral-400 text-center mt-2">
                     ✓ Funds have been withdrawn
                   </div>
                 )}
@@ -553,54 +553,20 @@ export default function AuctionDetailPage() {
 
             {/* Already Bid */}
             {bid && !hasChecked && (
-              <div className="rounded-lg border border-blue-800/50 bg-blue-950/30 p-6">
-                <div className="text-lg font-medium text-blue-200 mb-3">
+              <div className="rounded-lg border border-blue-800/50 bg-blue-950/30 p-4">
+                <div className="text-sm font-medium text-blue-200 mb-2">
                   ✅ Bid Placed
                 </div>
-                <p className="text-sm text-neutral-400">
+                <p className="text-xs text-neutral-400">
                   You have already placed a bid in this auction. Wait for the auction to close to check your win status.
                 </p>
               </div>
             )}
 
-            {/* Connect Wallet */}
-            {!wallet.publicKey && (
-              <div className="rounded-lg border border-purple-800/50 bg-purple-950/30 p-6">
-                <div className="text-lg font-medium text-purple-200 mb-3">
-                  👆 Connect Wallet
-                </div>
-                <p className="text-sm text-neutral-400 mb-4">
-                  Connect your wallet to place bids and participate in this auction.
-                </p>
-                <div className="text-xs text-center text-neutral-500">
-                  Connect your wallet using the button in the top-right corner
-                </div>
-              </div>
-            )}
-
-            {/* Close Auction (Authority Only) */}
-            {canClose && (
-              <div className="rounded-lg border border-red-800/50 bg-red-950/30 p-6">
-                <div className="text-lg font-medium text-red-200 mb-3">
-                  🔒 Close Auction
-                </div>
-                <p className="text-sm text-neutral-400 mb-4">
-                  As the auction authority, you can close this auction now that it has ended.
-                </p>
-                <button
-                  onClick={handleCloseAuction}
-                  disabled={loading}
-                  className="w-full px-6 py-4 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  {loading ? '⏳ Closing...' : '🔒 Close Auction'}
-                </button>
-              </div>
-            )}
-
             {/* Additional Info */}
-            <div className="rounded-lg border border-neutral-800 p-4 bg-neutral-900/30">
-              <div className="text-sm font-medium mb-3">📋 Auction Information</div>
-              <div className="space-y-2 text-sm">
+            <div className="rounded-lg border border-neutral-800 p-3 bg-neutral-900/30">
+              <div className="text-xs font-medium mb-2">📋 Auction Information</div>
+              <div className="space-y-1.5 text-xs">
                 <div className="flex justify-between">
                   <span className="text-neutral-500">Privacy</span>
                   <span className="text-green-400">✓ Encrypted Bids</span>
