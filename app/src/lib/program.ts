@@ -52,6 +52,16 @@ export function getVaultPDA(auction: PublicKey): [PublicKey, number] {
   );
 }
 
+export function getCommentPDA(
+  auction: PublicKey,
+  commentId: BN
+): [PublicKey, number] {
+  return PublicKey.findProgramAddressSync(
+    [Buffer.from("comment"), auction.toBuffer(), commentId.toArrayLike(Buffer, "le", 8)],
+    PROGRAM_ID
+  );
+}
+
 // Convert u128 handle to Buffer
 export function handleToBuffer(handle: BN | bigint): Buffer {
   const bn = typeof handle === "bigint" ? new BN(handle.toString()) : handle;
@@ -87,6 +97,15 @@ export interface BidAccount {
   refundAmountHandle: BN;
   checked: boolean;
   withdrawn: boolean;
+  bump: number;
+}
+
+// Comment account type
+export interface CommentAccount {
+  auction: PublicKey;
+  commenter: PublicKey;
+  comment: string;
+  timestamp: BN;
   bump: number;
 }
 

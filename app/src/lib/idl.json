@@ -8,6 +8,71 @@
   },
   "instructions": [
     {
+      "name": "add_comment",
+      "discriminator": [
+        59,
+        175,
+        193,
+        236,
+        134,
+        214,
+        75,
+        141
+      ],
+      "accounts": [
+        {
+          "name": "commenter",
+          "writable": true,
+          "signer": true
+        },
+        {
+          "name": "auction"
+        },
+        {
+          "name": "comment",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  99,
+                  111,
+                  109,
+                  109,
+                  101,
+                  110,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "auction"
+              },
+              {
+                "kind": "arg",
+                "path": "comment_id"
+              }
+            ]
+          }
+        },
+        {
+          "name": "system_program",
+          "address": "11111111111111111111111111111111"
+        }
+      ],
+      "args": [
+        {
+          "name": "comment_id",
+          "type": "u64"
+        },
+        {
+          "name": "comment_text",
+          "type": "string"
+        }
+      ]
+    },
+    {
       "name": "check_win",
       "discriminator": [
         157,
@@ -398,6 +463,19 @@
         180,
         88
       ]
+    },
+    {
+      "name": "Comment",
+      "discriminator": [
+        150,
+        135,
+        96,
+        244,
+        55,
+        199,
+        50,
+        65
+      ]
     }
   ],
   "errors": [
@@ -605,6 +683,37 @@
           {
             "name": "withdrawn",
             "type": "bool"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          }
+        ]
+      }
+    },
+    {
+      "name": "Comment",
+      "docs": [
+        "Comment account - stores comments on auctions"
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "auction",
+            "type": "pubkey"
+          },
+          {
+            "name": "commenter",
+            "type": "pubkey"
+          },
+          {
+            "name": "comment",
+            "type": "string"
+          },
+          {
+            "name": "timestamp",
+            "type": "i64"
           },
           {
             "name": "bump",

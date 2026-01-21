@@ -47,3 +47,18 @@ pub struct Bid {
 impl Bid {
     pub const SIZE: usize = 8 + 32 + 32 + 8 + 16 + 16 + 16 + 1 + 1 + 1 + 32;
 }
+
+/// Comment account - stores comments on auctions
+#[account]
+pub struct Comment {
+    pub auction: Pubkey,
+    pub commenter: Pubkey,
+    pub comment: String,              // Comment text (max 500 chars)
+    pub timestamp: i64,                // Unix timestamp when comment was created
+    pub bump: u8,
+}
+
+impl Comment {
+    // Base size: 8 (discriminator) + 32 (auction) + 32 (commenter) + 4+500 (comment) + 8 (timestamp) + 1 (bump) = 585 bytes
+    pub const SIZE: usize = 8 + 32 + 32 + 4 + 500 + 8 + 1;
+}

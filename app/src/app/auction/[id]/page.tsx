@@ -6,7 +6,7 @@ import Link from "next/link";
 import { PublicKey, LAMPORTS_PER_SOL } from "@solana/web3.js";
 import { useWallet } from "@solana/wallet-adapter-react";
 import { useAuction } from "@/hooks/useAuction";
-import { AuctionAccount, BidAccount } from "@/lib/program";
+import { AuctionAccount, BidAccount, CommentAccount } from "@/lib/program";
 import { TxStatus } from "@/components/tx-link";
 
 export default function AuctionDetailPage() {
@@ -20,6 +20,8 @@ export default function AuctionDetailPage() {
     closeAuction,
     decryptIsWinner,
     withdrawBid,
+    fetchComments,
+    addComment,
     loading,
     error,
   } = useAuction();
@@ -28,6 +30,9 @@ export default function AuctionDetailPage() {
   const [bid, setBid] = useState<BidAccount | null>(null);
   const [bidAmount, setBidAmount] = useState("");
   const [pageLoading, setPageLoading] = useState(true);
+  const [comments, setComments] = useState<Array<{ publicKey: PublicKey; account: CommentAccount }>>([]);
+  const [commentText, setCommentText] = useState("");
+  const [commenting, setCommenting] = useState(false);
   const [txStatus, setTxStatus] = useState<string | null>(null);
   const [lastTxHash, setLastTxHash] = useState<string | null>(null);
   const [isWinner, setIsWinner] = useState<boolean | null>(null);
@@ -70,7 +75,10 @@ export default function AuctionDetailPage() {
       setIsWinner(null);
       setDecryptResult(null);
     }
-  }, [auctionPDA, fetchAuctionByPDA, fetchBid, wallet.publicKey]);
+    // Fetch comments
+    const commentsData = await fetchComments(auctionPDA);
+    setComments(commentsData);
+  }, [auctionPDA, fetchAuctionByPDA, fetchBid, fetchComments, wallet.publicKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -93,11 +101,14 @@ export default function AuctionDetailPage() {
           setDecryptResult(null);
         }
       }
+      // Fetch comments
+      const commentsData = await fetchComments(auctionPDA);
+      if (!cancelled) setComments(commentsData);
       if (!cancelled) setPageLoading(false);
     };
     fetchData();
     return () => { cancelled = true; };
-  }, [auctionPDA, fetchAuctionByPDA, fetchBid, wallet.publicKey]);
+  }, [auctionPDA, fetchAuctionByPDA, fetchBid, fetchComments, wallet.publicKey]);
 
   // Countdown timer effect
   useEffect(() => {
@@ -276,6 +287,35 @@ export default function AuctionDetailPage() {
   const canWithdraw = hasChecked && !hasWithdrawn && decryptResult && wallet.publicKey;
   const canClose = isAuthority && !auction.isClosed && isEnded && auction.bidderCount > 0;
 
+  const handleAddComment = async () => {
+    if (!auctionPDA || !commentText.trim() || commentText.length > 500) return;
+    
+    setCommenting(true);
+    const tx = await addComment(auctionPDA, commentText.trim());
+    if (tx) {
+      setCommentText("");
+      // Refresh comments
+      const commentsData = await fetchComments(auctionPDA);
+      setComments(commentsData);
+    }
+    setCommenting(false);
+  };
+
+  const formatCommentTime = (timestamp: number) => {
+    const date = new Date(timestamp * 1000);
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const minutes = Math.floor(diff / 60000);
+    const hours = Math.floor(diff / 3600000);
+    const days = Math.floor(diff / 86400000);
+
+    if (minutes < 1) return "just now";
+    if (minutes < 60) return `${minutes}m ago`;
+    if (hours < 24) return `${hours}h ago`;
+    if (days < 7) return `${days}d ago`;
+    return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: date.getFullYear() !== now.getFullYear() ? "numeric" : undefined });
+  };
+
   return (
     <div className="space-y-4 px-8">
         {/* Back Button */}
@@ -387,32 +427,7 @@ export default function AuctionDetailPage() {
               )}
             </div>
 
-            {/* Category and Tags */}
-            {(auction.category || (auction.tags && auction.tags.length > 0)) && (
-              <div className="rounded-lg border border-neutral-800 p-3 bg-neutral-900/30">
-                <div className="text-xs font-medium mb-2">📋 Details</div>
-                <div className="space-y-1.5 text-xs">
-                  {auction.category && (
-                    <div className="flex justify-between">
-                      <span className="text-neutral-500">Category</span>
-                      <span className="text-neutral-200">{auction.category}</span>
-                    </div>
-                  )}
-                  {auction.tags && auction.tags.length > 0 && (
-                    <div className="flex flex-wrap gap-2 pt-2">
-                      {auction.tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 text-xs bg-neutral-800 text-neutral-300 rounded"
-                        >
-                          #{tag}
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            
           </div>
 
           {/* Right: Details */}
@@ -444,9 +459,7 @@ export default function AuctionDetailPage() {
                 <div className="text-xs font-medium">Minimum Bid</div>
                 <div className="text-xl font-bold text-green-400">{minBid.toFixed(3)} SOL</div>
               </div>
-               <div className="text-xs text-neutral-500 mt-1">
-                All bids are encrypted and remain private until auction closes
-              </div> 
+              
             </div> 
 
             {/* Place Bid Section */}
@@ -461,10 +474,10 @@ export default function AuctionDetailPage() {
                 <div className="space-y-2 mb-3">
                   <input
                     type="number"
-                    placeholder={`Minimum: ${minBid.toFixed(3)} SOL`}
+                    placeholder={`Enter Bid Amount Minimum: ${minBid.toFixed(3)} SOL`}
                     step="0.001"
                     min={minBid}
-                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-neutral-200 focus:border-purple-600 focus:outline-none"
+                    className="w-full bg-neutral-900/50 border-2 border-purple-600/50 rounded-lg px-4 py-2.5 text-sm font-medium text-white placeholder:text-neutral-400 focus:border-purple-500 focus:ring-2 focus:ring-purple-500/20 focus:outline-none transition-all"
                     value={bidAmount}
                     onChange={(e) => setBidAmount(e.target.value)}
                   />
@@ -563,6 +576,37 @@ export default function AuctionDetailPage() {
               </div>
             )}
 
+
+
+                        {/* Category and Tags */}
+                        {(auction.category || (auction.tags && auction.tags.length > 0)) && (
+              <div className="rounded-lg border border-neutral-800 p-2 bg-neutral-900/30">
+                <div className="flex items-center flex-wrap gap-2">
+                  {auction.category && (
+                    <div className="flex items-center gap-1">
+                      <span className="text-xs text-neutral-500">Category:</span>
+                      <span className="text-xs font-medium text-purple-300">{auction.category}</span>
+                    </div>
+                  )}
+                  {auction.tags && auction.tags.length > 0 && (
+                    <>
+                      {auction.category && <span className="text-xs text-neutral-600">•</span>}
+                      <div className="flex flex-wrap gap-1.5">
+                        {auction.tags.map((tag, index) => (
+                          <span
+                            key={index}
+                            className="px-1.5 py-0.5 text-xs bg-neutral-800/80 text-neutral-300 rounded border border-neutral-700"
+                          >
+                            #{tag}
+                          </span>
+                        ))}
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Additional Info */}
             <div className="rounded-lg border border-neutral-800 p-3 bg-neutral-900/30">
               <div className="text-xs font-medium mb-2">📋 Auction Information</div>
@@ -587,6 +631,80 @@ export default function AuctionDetailPage() {
                 )}
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Comments Section */}
+        <div className="mt-6 border-t border-neutral-800 pt-6">
+          <div className="mb-4">
+            <h2 className="text-lg font-bold mb-1">💬 Comments ({comments.length})</h2>
+            <p className="text-xs text-neutral-400">Share your thoughts about this auction</p>
+          </div>
+
+          {/* Add Comment Form */}
+          {wallet.publicKey ? (
+            <div className="mb-6 rounded-lg border border-neutral-800 bg-neutral-900/30 p-4">
+              <textarea
+                placeholder="Write a comment... (max 500 characters)"
+                maxLength={500}
+                rows={3}
+                className="w-full bg-white/5 border-2 border-white/10 rounded-lg px-3 py-2 text-sm text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+              />
+              <div className="flex items-center justify-between mt-2">
+                <span className="text-xs text-neutral-500">{commentText.length}/500</span>
+                <button
+                  onClick={handleAddComment}
+                  disabled={commenting || !commentText.trim() || commentText.length > 500}
+                  className="px-4 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {commenting ? "Posting..." : "Post Comment"}
+                </button>
+              </div>
+            </div>
+          ) : (
+            <div className="mb-6 rounded-lg border border-neutral-800 bg-neutral-900/30 p-4 text-center">
+              <p className="text-sm text-neutral-400">Connect your wallet to add a comment</p>
+            </div>
+          )}
+
+          {/* Comments List */}
+          <div className="space-y-3">
+            {comments.length === 0 ? (
+              <div className="text-center py-8 border border-dashed border-neutral-800 rounded-lg">
+                <div className="text-3xl mb-2">💭</div>
+                <p className="text-sm text-neutral-500">No comments yet. Be the first to comment!</p>
+              </div>
+            ) : (
+              comments.map((comment) => (
+                <div
+                  key={comment.publicKey.toBase58()}
+                  className="rounded-lg border border-neutral-800 bg-neutral-900/30 p-3 hover:bg-neutral-900/50 transition-colors"
+                >
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500/30 to-purple-500/30 flex items-center justify-center border border-indigo-500/50">
+                        <span className="text-xs font-bold text-indigo-300">
+                          {comment.account.commenter.toBase58().slice(0, 2).toUpperCase()}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="text-xs font-semibold text-white">
+                          {comment.account.commenter.toBase58().slice(0, 4)}...{comment.account.commenter.toBase58().slice(-4)}
+                        </div>
+                        <div className="text-xs text-neutral-500">
+                          {formatCommentTime(comment.account.timestamp.toNumber())}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <p className="text-sm text-neutral-300 leading-relaxed whitespace-pre-wrap">
+                    {comment.account.comment}
+                  </p>
+                </div>
+              ))
+            )}
           </div>
         </div>
     </div>

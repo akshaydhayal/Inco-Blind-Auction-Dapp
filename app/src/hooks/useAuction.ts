@@ -16,9 +16,11 @@ import {
   getAuctionPDA,
   getBidPDA,
   getVaultPDA,
+  getCommentPDA,
   INCO_LIGHTNING_PROGRAM_ID,
   AuctionAccount,
   BidAccount,
+  CommentAccount,
 } from "@/lib/program";
 import { decrypt } from "@inco/solana-sdk/attested-decrypt";
 import { handleToBuffer, plaintextToBuffer, hexToBuffer } from "@inco/solana-sdk/utils";
@@ -493,6 +495,72 @@ export function useAuction() {
     [program, publicKey, signTransaction, connection]
   );
 
+  // Fetch all comments for an auction
+  const fetchComments = useCallback(
+    async (auctionPDA: PublicKey): Promise<Array<{ publicKey: PublicKey; account: CommentAccount }>> => {
+      if (!program) return [];
+      try {
+        // Anchor converts PascalCase struct names to lowercase for account namespace
+        // So "Comment" struct becomes "comment" account
+        const comments = await (program.account as any).comment.all([
+          {
+            memcmp: {
+              offset: 8, // Skip discriminator
+              bytes: auctionPDA.toBase58(),
+            },
+          },
+        ]);
+        return comments.sort((a: any, b: any) => 
+          a.account.timestamp.toNumber() - b.account.timestamp.toNumber()
+        );
+      } catch (err) {
+        console.error("Error fetching comments:", err);
+        // Return empty array on error (account might not exist in IDL yet)
+        return [];
+      }
+    },
+    [program]
+  );
+
+  // Add a comment to an auction
+  const addComment = useCallback(
+    async (auctionPDA: PublicKey, commentText: string): Promise<string | null> => {
+      if (!program || !wallet.publicKey) {
+        setError("Wallet not connected");
+        return null;
+      }
+
+      setLoading(true);
+      setError(null);
+
+      try {
+        const commentId = new BN(Date.now());
+        const [commentPDA] = getCommentPDA(auctionPDA, commentId);
+
+        // Anchor converts snake_case to camelCase: add_comment -> addComment
+        const tx = await program.methods
+          .addComment(commentId, commentText)
+          .accounts({
+            commenter: wallet.publicKey,
+            auction: auctionPDA,
+            comment: commentPDA,
+            systemProgram: SystemProgram.programId,
+          })
+          .rpc();
+
+        return tx;
+      } catch (err: any) {
+        const errorMsg = err.message || "Failed to add comment";
+        setError(errorMsg);
+        console.error("Error adding comment:", err);
+        return null;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [program, wallet]
+  );
+
   return {
     program,
     loading,
@@ -507,5 +575,7 @@ export function useAuction() {
     checkWin,
     decryptIsWinner,
     withdrawBid,
+    fetchComments,
+    addComment,
   };
 }

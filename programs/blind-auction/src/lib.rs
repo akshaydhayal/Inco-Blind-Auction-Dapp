@@ -56,4 +56,12 @@ pub mod blind_auction {
     ) -> Result<()> {
         instructions::withdraw_bid::handler(ctx, is_winner_handle, is_winner_plaintext)
     }
+
+    pub fn add_comment(
+        ctx: Context<AddComment>,
+        comment_id: u64,
+        comment_text: String,
+    ) -> Result<()> {
+        instructions::add_comment::handler(ctx, comment_id, comment_text)
+    }
 }
