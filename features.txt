@@ -30,7 +30,7 @@ Trust & Safety
 Analytics & Insights
 - Auction Stats — Views, unique visitors, bid velocity
 - Price History — Graph of bid activity over time (encrypted amounts, visible count)
-- Similar Auctions — Show related items
+- Similar Auctions — Show related items 
 
 Social Features
 - Comments/Questions — Public Q&A section
@@ -56,4 +56,3 @@ Phase 3:
     Analytics
     Advanced filtering
     Recommendations
-    

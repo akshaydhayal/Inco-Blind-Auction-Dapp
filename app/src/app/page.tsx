@@ -13,6 +13,7 @@ export default function HomePage() {
   >([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<"active" | "closed">("active");
+  const [currentTime, setCurrentTime] = useState(Math.floor(Date.now() / 1000));
 
   useEffect(() => {
     const load = async () => {
@@ -24,9 +25,45 @@ export default function HomePage() {
     load();
   }, [fetchAuctions]);
 
+  // Update current time every minute for time remaining display
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentTime(Math.floor(Date.now() / 1000));
+    }, 60000); // Update every minute
+    
+    return () => clearInterval(interval);
+  }, []);
+
   const formatDate = (timestamp: number) => {
     const date = new Date(timestamp * 1000);
-    return date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  };
+
+  const formatTimeRemaining = (endTime: number, isClosed: boolean) => {
+    if (isClosed) {
+      return `Closed on ${formatDate(endTime)}`;
+    }
+    
+    const remaining = endTime - currentTime;
+    
+    if (remaining <= 0) {
+      return "Expired";
+    }
+    
+    const days = Math.floor(remaining / 86400);
+    const hours = Math.floor((remaining % 86400) / 3600);
+    const minutes = Math.floor((remaining % 3600) / 60);
+    
+    const parts: string[] = [];
+    if (days > 0) parts.push(`${days}d`);
+    if (hours > 0) parts.push(`${hours}h`);
+    if (minutes > 0) parts.push(`${minutes}m`);
+    
+    if (parts.length === 0) {
+      return "Less than 1m";
+    }
+    
+    return `${parts.join(" ")} remaining`;
   };
 
   // Separate auctions into active and closed
@@ -102,6 +139,13 @@ export default function HomePage() {
               {auction.account.description}
             </p>
           )}
+          {auction.account.category && (
+            <div className="text-xs">
+              <span className="px-2 py-0.5 rounded bg-purple-900/30 text-purple-300 border border-purple-800/50">
+                {auction.account.category}
+              </span>
+            </div>
+          )}
           <div className="flex items-center justify-between pt-2 border-t border-neutral-800">
             <div className="text-xs text-neutral-500">
               Auction <span className="font-mono">#{auction.account.auctionId.toString().slice(-6)}</span>
@@ -114,8 +158,8 @@ export default function HomePage() {
             <div className="text-xs text-blue-400 group-hover:text-blue-300 flex items-center gap-1">
               View Auction Details →
             </div>
-            <div className={`text-xs ${isExpired ? 'text-yellow-400' : 'text-neutral-500'}`}>
-              🕒 {isExpired ? 'Expired' : `Expires ${formatDate(endTime)}`}
+            <div className={`text-xs ${isActive ? 'text-orange-400' : 'text-neutral-400'}`}>
+              🕒 {formatTimeRemaining(endTime, !isActive)}
             </div>
           </div>
         </div>

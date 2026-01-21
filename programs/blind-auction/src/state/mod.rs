@@ -12,8 +12,8 @@ pub struct Auction {
     pub is_closed: bool,                 // Auction has been closed by authority
     pub highest_bid_handle: u128,        // Encrypted highest bid amount
     pub winner_determined: bool,         // Has winner been determined?
-    pub bump: u8,
-    // Metadata fields
+    pub bump: u8, 
+    // Metadata fields     
     pub title: String,                  // Auction title (max 100 chars)
     pub description: String,            // Auction description (max 1000 chars)
     pub category: String,               // Auction category (max 50 chars)

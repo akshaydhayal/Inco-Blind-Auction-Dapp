@@ -3,6 +3,8 @@
 import Link from "next/link";
 import Image from "next/image";
 import dynamic from "next/dynamic";
+import { useState } from "react";
+import { CreateAuctionModal } from "./create-auction-modal";
 
 const WalletButton = dynamic(() => import("./wallet-button"), {
   ssr: false,
@@ -12,7 +14,10 @@ const WalletButton = dynamic(() => import("./wallet-button"), {
 });
 
 export default function Navbar() {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+
   return (
+    <>
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/5 backdrop-blur-xl backdrop-saturate-150 border-b border-white/10">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
@@ -61,18 +66,22 @@ export default function Navbar() {
                 Auctions
                 <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 group-hover:w-full transition-all duration-300"></span>
               </Link>
-              <Link 
-                href="/create" 
-                className="text-white/70 hover:text-white transition-all relative group py-2"
-              >
-                Create
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 group-hover:w-full transition-all duration-300"></span>
-              </Link>
             </div>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-semibold transition-all text-sm"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+              </svg>
+              Create Auction
+            </button>
             <WalletButton />
           </div>
         </div>
       </div>
     </nav>
+    <CreateAuctionModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+    </>
   );
 }
