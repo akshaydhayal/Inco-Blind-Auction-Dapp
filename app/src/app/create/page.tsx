@@ -58,14 +58,7 @@ export default function CreatePage() {
   };
 
   return (
-    <main className="pt-20 pb-12 min-h-screen relative overflow-hidden">
-      {/* Animated background */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-96 h-96 bg-indigo-500/15 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute w-80 h-80 bg-purple-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+    <div className="relative">
         <div className="max-w-4xl mx-auto w-full">
           <Link
             href="/"
@@ -279,7 +272,6 @@ export default function CreatePage() {
           </div>
         </div>
         </div>
-      </div>
-    </main>
+    </div>
   );
 }

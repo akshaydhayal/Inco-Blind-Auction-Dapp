@@ -7,7 +7,7 @@ export default function ConnectWallet() {
   const { setVisible } = useWalletModal();
 
   return (
-    <main className="pt-32 sm:pt-36 px-4 sm:px-6 lg:px-8 pb-16 sm:pb-24 min-h-screen flex flex-col items-center justify-center relative overflow-hidden">
+    <div className="flex flex-col items-center justify-center min-h-screen relative">
       {/* Animated background */}
       <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
         <div className="w-[600px] h-[600px] bg-indigo-500/20 rounded-full blur-3xl animate-pulse"></div>
@@ -15,7 +15,7 @@ export default function ConnectWallet() {
         <div className="absolute w-[400px] h-[400px] bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
       </div>
 
-      <div className="text-center max-w-3xl w-full relative z-10 px-4">
+      <div className="text-center w-full relative z-10">
         {/* Icon */}
         <div className="w-28 h-28 sm:w-32 sm:h-32 mx-auto mb-8 sm:mb-10 rounded-3xl bg-gradient-to-br from-indigo-500/30 to-purple-500/30 flex items-center justify-center border-2 border-indigo-500/50 animate-pulse shadow-2xl shadow-indigo-500/30">
           <svg className="w-14 h-14 sm:w-16 sm:h-16 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -88,6 +88,6 @@ export default function ConnectWallet() {
           </p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

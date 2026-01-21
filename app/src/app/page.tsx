@@ -29,25 +29,26 @@ export default function HomePage() {
     return date.toLocaleDateString('en-US', { month: '2-digit', day: '2-digit', year: 'numeric' });
   };
 
-  // Filter auctions based on active tab
-  const filteredAuctions = useMemo(() => {
+  // Separate auctions into active and closed
+  const { activeAuctions, closedAuctions } = useMemo(() => {
+    const active: Array<{ publicKey: PublicKey; account: AuctionAccount }> = [];
+    const closed: Array<{ publicKey: PublicKey; account: AuctionAccount }> = [];
     const now = Math.floor(Date.now() / 1000);
-    if (activeTab === "active") {
-      return auctions.filter(
-        (auction) =>
-          auction.account.isOpen &&
-          !auction.account.isClosed &&
-          auction.account.endTime.toNumber() > now
-      );
-    } else {
-      return auctions.filter(
-        (auction) =>
-          auction.account.isClosed ||
-          (!auction.account.isOpen) ||
-          auction.account.endTime.toNumber() <= now
-      );
-    }
-  }, [auctions, activeTab]);
+
+    auctions.forEach((auction) => {
+      const endTime = auction.account.endTime.toNumber();
+      const isOpen = auction.account.isOpen && !auction.account.isClosed;
+      const isExpired = endTime <= now;
+      
+      if (isExpired || auction.account.isClosed || !isOpen) {
+        closed.push(auction);
+      } else {
+        active.push(auction);
+      }
+    });
+
+    return { activeAuctions: active, closedAuctions: closed };
+  }, [auctions]);
 
   const handleRefresh = async () => {
     setLoading(true);
@@ -56,249 +57,196 @@ export default function HomePage() {
     setLoading(false);
   };
 
-  return (
-    <main className="pt-20 pb-12 min-h-screen">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col gap-4">
-        {/* Hero Section - Background only */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-          <div className="w-96 h-96 bg-indigo-500/20 rounded-full blur-3xl animate-pulse"></div>
-          <div className="absolute w-72 h-72 bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-          <div className="absolute w-64 h-64 bg-pink-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
-        </div>
-
-        {/* Auctions Section */}
-        <section className="relative z-10">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-4 gap-3">
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-black text-white mb-2">
-                {activeTab === "active" ? "Active Auctions" : "Closed Auctions"}
-              </h2>
-              <p className="text-sm text-white/60 max-w-2xl leading-relaxed font-light">
-                Place encrypted bids in complete privacy. Your bid amount remains hidden until the auction closes.
-              </p>
+  const AuctionCard = ({ auction }: { auction: { publicKey: PublicKey; account: AuctionAccount } }) => {
+    const minBid = auction.account.minimumBid.toNumber() / LAMPORTS_PER_SOL;
+    const endTime = auction.account.endTime.toNumber();
+    const endTimeDate = new Date(endTime * 1000);
+    const now = Math.floor(Date.now() / 1000);
+    const isExpired = endTime <= now;
+    const isOpen = auction.account.isOpen && !auction.account.isClosed;
+    const isActive = isOpen && !isExpired;
+    
+    return (
+      <Link 
+        key={auction.publicKey.toBase58()} 
+        href={`/auction/${auction.publicKey.toBase58()}`}
+        className="rounded-lg border-2 border-neutral-700 overflow-hidden hover:border-neutral-500 hover:shadow-lg transition-all group bg-neutral-900/50"
+      >
+        {auction.account.imageUrl && (
+          <div className="aspect-video w-full bg-neutral-900 relative overflow-hidden">
+            <img 
+              src={auction.account.imageUrl} 
+              alt={auction.account.title || "Auction image"}
+              className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+              onError={(e) => {
+                e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="400" height="300"%3E%3Crect fill="%23171717" width="400" height="300"/%3E%3Ctext fill="%23525252" font-family="system-ui" font-size="18" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3EImage not available%3C/text%3E%3C/svg%3E';
+              }}
+            />
+          </div>
+        )}
+        <div className="p-4 space-y-2">
+          <div className="flex items-start justify-between gap-2">
+            <div className="font-medium text-lg group-hover:text-white transition-colors">
+              {auction.account.title || "Untitled Auction"}
             </div>
-            <div className="flex items-center gap-3">
-              <button
-                onClick={handleRefresh}
-                className="px-4 py-2 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl backdrop-saturate-150 hover:bg-white/10 transition-all text-white/70 hover:text-white"
-                title="Refresh auctions"
-              >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-              </button>
-              <div className="px-3 py-1.5 rounded-xl border border-white/10 bg-white/5 backdrop-blur-xl backdrop-saturate-150">
-                <span className="text-xs text-white/70 font-bold">
-                  {filteredAuctions.length} {filteredAuctions.length === 1 ? "auction" : "auctions"}
-                </span>
+            <div className={`px-2 py-0.5 rounded text-xs font-medium whitespace-nowrap ${
+              isActive
+                ? "bg-green-900/50 text-green-200"
+                : "bg-neutral-800 text-neutral-400"
+            }`}>
+              {isActive ? "● LIVE" : "CLOSED"}
+            </div>
+          </div>
+          {auction.account.description && (
+            <p className="text-sm text-neutral-400 line-clamp-2">
+              {auction.account.description}
+            </p>
+          )}
+          <div className="flex items-center justify-between pt-2 border-t border-neutral-800">
+            <div className="text-xs text-neutral-500">
+              Auction <span className="font-mono">#{auction.account.auctionId.toString().slice(-6)}</span>
+            </div>
+            <div className="text-sm font-medium text-neutral-300">
+              {auction.account.bidderCount} {auction.account.bidderCount === 1 ? "bidder" : "bidders"}
+            </div>
+          </div>
+          <div className="pt-2 flex items-center justify-between gap-2">
+            <div className="text-xs text-blue-400 group-hover:text-blue-300 flex items-center gap-1">
+              View Auction Details →
+            </div>
+            <div className={`text-xs ${isExpired ? 'text-yellow-400' : 'text-neutral-500'}`}>
+              🕒 {isExpired ? 'Expired' : `Expires ${formatDate(endTime)}`}
+            </div>
+          </div>
+        </div>
+      </Link>
+    );
+  };
+
+  const renderAuctionGrid = (auctionList: Array<{ publicKey: PublicKey; account: AuctionAccount }>) => {
+    if (auctionList.length === 0) {
+      return (
+        <div className="text-center py-12 border border-dashed border-neutral-800 rounded-lg">
+          <div className="text-4xl mb-3">📭</div>
+          <div className="text-lg font-medium text-neutral-300 mb-2">No Auctions Found</div>
+          <p className="text-sm text-neutral-500">Check back later for exciting auctions!</p>
+        </div>
+      );
+    }
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {auctionList.map(auction => <AuctionCard key={auction.publicKey.toBase58()} auction={auction} />)}
+      </div>
+    );
+  };
+
+  return (
+    <div className="space-y-8">
+          {/* Tabs */}
+          <div className="border-b border-neutral-800 pb-0">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex gap-1">
+                <button
+                  onClick={() => setActiveTab('active')}
+                  className={`px-6 py-3 font-medium text-sm transition-colors relative ${
+                    activeTab === 'active'
+                      ? 'text-white'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  ✨ Active Auctions
+                  {activeTab === 'active' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600" />
+                  )}
+                  {activeAuctions.length > 0 && (
+                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                      activeTab === 'active' 
+                        ? 'bg-purple-600 text-white' 
+                        : 'bg-neutral-800 text-neutral-400'
+                    }`}>
+                      {activeAuctions.length}
+                    </span>
+                  )}
+                </button>
+                <button
+                  onClick={() => setActiveTab('closed')}
+                  className={`px-6 py-3 font-medium text-sm transition-colors relative ${
+                    activeTab === 'closed'
+                      ? 'text-white'
+                      : 'text-neutral-400 hover:text-white'
+                  }`}
+                >
+                  ⏰ Closed Auctions
+                  {activeTab === 'closed' && (
+                    <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-yellow-600" />
+                  )}
+                  {closedAuctions.length > 0 && (
+                    <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+                      activeTab === 'closed' 
+                        ? 'bg-yellow-600 text-white' 
+                        : 'bg-neutral-800 text-neutral-400'
+                    }`}>
+                      {closedAuctions.length}
+                    </span>
+                  )}
+                </button>
+              </div>
+              <div className="flex items-center gap-4">
+                {activeTab === 'active' && !loading && (
+                  <p className="text-sm text-green-300/70">
+                    {activeAuctions.length} {activeAuctions.length === 1 ? 'auction' : 'auctions'} available to bid
+                  </p>
+                )}
+                {activeTab === 'closed' && !loading && (
+                  <p className="text-sm text-yellow-300/70">
+                    {closedAuctions.length} {closedAuctions.length === 1 ? 'auction' : 'auctions'} that have closed
+                  </p>
+                )}
+                <button 
+                  onClick={handleRefresh} 
+                  className="text-sm px-4 py-2 rounded-lg bg-neutral-800 hover:bg-neutral-700 text-white transition-colors shrink-0"
+                  disabled={loading}
+                >
+                  {loading ? 'Refreshing...' : '🔄 Refresh'}
+                </button>
               </div>
             </div>
           </div>
 
-          {/* Tabs */}
-          <div className="flex items-center gap-2 mb-6">
-            <button
-              onClick={() => setActiveTab("active")}
-              className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                activeTab === "active"
-                  ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30"
-                  : "bg-white/5 text-white/60 hover:bg-white/10 border border-white/10"
-              }`}
-            >
-              Active Auctions
-              {auctions.filter(
-                (a) =>
-                  a.account.isOpen &&
-                  !a.account.isClosed &&
-                  a.account.endTime.toNumber() > Math.floor(Date.now() / 1000)
-              ).length > 0 && (
-                <span className="ml-2 px-2 py-0.5 rounded-full bg-white/20 text-xs">
-                  {auctions.filter(
-                    (a) =>
-                      a.account.isOpen &&
-                      !a.account.isClosed &&
-                      a.account.endTime.toNumber() > Math.floor(Date.now() / 1000)
-                  ).length}
-                </span>
-              )}
-            </button>
-            <button
-              onClick={() => setActiveTab("closed")}
-              className={`px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${
-                activeTab === "closed"
-                  ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg shadow-indigo-500/30"
-                  : "bg-white/5 text-white/60 hover:bg-white/10 border border-white/10"
-              }`}
-            >
-              Closed Auctions
-              {auctions.filter(
-                (a) =>
-                  a.account.isClosed ||
-                  (!a.account.isOpen) ||
-                  a.account.endTime.toNumber() <= Math.floor(Date.now() / 1000)
-              ).length > 0 && (
-                <span className="ml-2 px-2 py-0.5 rounded-full bg-white/20 text-xs">
-                  {auctions.filter(
-                    (a) =>
-                      a.account.isClosed ||
-                      (!a.account.isOpen) ||
-                      a.account.endTime.toNumber() <= Math.floor(Date.now() / 1000)
-                  ).length}
-                </span>
-              )}
-            </button>
-          </div>
-
-          {filteredAuctions.length > 0 && (
-            <p className="text-sm text-white/50 mb-4">
-              {filteredAuctions.length} {filteredAuctions.length === 1 ? "auction" : "auctions"} available
-            </p>
-          )}
-
+          {/* Tab Content */}
           {loading ? (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 pt-4">
               {[1, 2, 3, 4, 5, 6].map((i) => (
                 <div
                   key={i}
-                  className="rounded-2xl p-4 animate-pulse min-h-[280px] flex flex-col border border-white/15 bg-white/10 backdrop-blur-2xl backdrop-saturate-150"
+                  className="rounded-lg border-2 border-neutral-700 overflow-hidden animate-pulse bg-neutral-900/50"
                 >
-                  <div className="h-5 bg-white/10 rounded-lg w-1/3 mb-3" />
-                  <div className="h-6 bg-white/10 rounded-lg w-2/3 mb-3" />
-                  <div className="h-3 bg-white/10 rounded-lg w-full mb-2" />
-                  <div className="h-3 bg-white/10 rounded-lg w-full mb-2" />
-                  <div className="h-3 bg-white/10 rounded-lg w-3/4 mb-3" />
-                  <div className="flex-grow" />
-                  <div className="h-8 bg-white/10 rounded-lg w-full mt-auto" />
+                  <div className="aspect-video w-full bg-neutral-900" />
+                  <div className="p-4 space-y-2">
+                    <div className="h-5 bg-neutral-800 rounded w-3/4" />
+                    <div className="h-4 bg-neutral-800 rounded w-full" />
+                    <div className="h-4 bg-neutral-800 rounded w-2/3" />
+                    <div className="pt-2 border-t border-neutral-800">
+                      <div className="h-3 bg-neutral-800 rounded w-1/2" />
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>
-          ) : filteredAuctions.length === 0 ? (
-            <div className="text-center py-12 rounded-2xl px-4 border border-white/15 bg-white/10 backdrop-blur-2xl backdrop-saturate-150">
-              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center border border-indigo-500/30 animate-pulse">
-                <svg className="w-8 h-8 text-indigo-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-xl font-black text-white mb-2">No auctions yet</h3>
-              <p className="text-white/60 text-sm">Be the first to create a blind auction</p>
-            </div>
           ) : (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 items-stretch">
-              {filteredAuctions.map((auction) => {
-                const isOpen = auction.account.isOpen && !auction.account.isClosed;
-                const minBid = auction.account.minimumBid.toNumber() / LAMPORTS_PER_SOL;
-                const now = Math.floor(Date.now() / 1000);
-                const isActive = isOpen && auction.account.endTime.toNumber() > now;
-                
-                return (
-                  <div
-                    key={auction.publicKey.toBase58()}
-                    className="group relative rounded-2xl overflow-hidden border border-white/15 bg-white/10 backdrop-blur-2xl backdrop-saturate-150 flex flex-col transition-transform duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-indigo-500/30"
-                  >
-                    {/* Image */}
-                    {auction.account.imageUrl ? (
-                      <div className="relative w-full h-48 overflow-hidden bg-white/5">
-                        <img
-                          src={auction.account.imageUrl}
-                          alt={auction.account.title || "Auction image"}
-                          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                          onError={(e) => {
-                            (e.target as HTMLImageElement).style.display = 'none';
-                          }}
-                        />
-                        {/* Status Badge on Image */}
-                        <div className="absolute top-3 right-3">
-                          <span
-                            className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${
-                              isActive
-                                ? "bg-gradient-to-r from-green-500/90 to-emerald-500/90 text-white"
-                                : "bg-white/90 text-gray-800"
-                            }`}
-                          >
-                            {isActive ? "● LIVE" : "CLOSED"}
-                          </span>
-                        </div>
-                      </div>
-                    ) : (
-                      <div className="relative w-full h-48 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 flex items-center justify-center">
-                        <div className="absolute top-3 right-3">
-                          <span
-                            className={`inline-flex px-3 py-1 rounded-full text-xs font-bold ${
-                              isActive
-                                ? "bg-gradient-to-r from-green-500/90 to-emerald-500/90 text-white"
-                                : "bg-white/90 text-gray-800"
-                            }`}
-                          >
-                            {isActive ? "● LIVE" : "CLOSED"}
-                          </span>
-                        </div>
-                        <svg className="w-16 h-16 text-white/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                        </svg>
-                      </div>
-                    )}
-
-                    {/* Card Content */}
-                    <div className="p-5 flex flex-col flex-grow">
-                      {/* Title */}
-                      <h3 className="text-lg font-black text-white mb-2 line-clamp-2 group-hover:bg-gradient-to-r group-hover:from-indigo-400 group-hover:to-purple-400 group-hover:bg-clip-text group-hover:text-transparent transition-all duration-300">
-                        {auction.account.title || "Untitled Auction"}
-                      </h3>
-
-                      {/* Description */}
-                      {auction.account.description && (
-                        <p className="text-sm text-white/70 mb-4 line-clamp-2 leading-relaxed">
-                          {auction.account.description}
-                        </p>
-                      )}
-
-                      {/* Auction ID */}
-                      <div className="mb-4">
-                        <span className="text-xs text-white/50 font-semibold">
-                          Auction #{auction.account.auctionId.toString().slice(-6)}
-                        </span>
-                      </div>
-
-                      {/* Stats */}
-                      <div className="space-y-2 mb-4 flex-grow">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-white/60 font-medium">Bidders</span>
-                          <span className="text-sm font-bold text-white">
-                            {auction.account.bidderCount} {auction.account.bidderCount === 1 ? "bidder" : "bidders"}
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-white/60 font-medium">Min. Bid</span>
-                          <span className="text-sm font-bold text-white">
-                            {minBid.toFixed(3)} SOL
-                          </span>
-                        </div>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-white/60 font-medium">Expires</span>
-                          <span className="text-xs font-bold text-white/90">
-                            {formatDate(auction.account.endTime.toNumber())}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* View Details Link */}
-                      <Link
-                        href={`/auction/${auction.publicKey.toBase58()}`}
-                        className="mt-auto pt-4 border-t border-white/10 flex items-center justify-between text-sm font-bold text-indigo-400 group-hover:text-purple-400 transition-colors"
-                      >
-                        <span>View Auction Details</span>
-                        <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                      </Link>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="rounded-lg border border-neutral-800 p-6 pt-2">
+              {activeTab === 'active' && (
+                <div>
+                  {renderAuctionGrid(activeAuctions)}
+                </div>
+              )}
+              {activeTab === 'closed' && (
+                <div>
+                  {renderAuctionGrid(closedAuctions)}
+                </div>
+              )}
             </div>
           )}
-        </section>
-      </div>
-    </main>
+    </div>
   );
 }

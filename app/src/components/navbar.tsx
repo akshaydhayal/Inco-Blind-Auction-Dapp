@@ -24,7 +24,7 @@ export default function Navbar() {
               <span className="bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
                 BlindBids
               </span>
-              <span className="text-indigo-400">.</span>
+              {/* <span className="text-indigo-400">.</span> */}
             </Link>
             <div className="hidden sm:flex items-center gap-2">
               <div className="px-2.5 py-1 rounded-full border border-white/10 bg-white/5 backdrop-blur-xl backdrop-saturate-150">

@@ -33,6 +33,7 @@ export default function AuctionDetailPage() {
   const [isWinner, setIsWinner] = useState<boolean | null>(null);
   const [decrypting, setDecrypting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
+  const [timeRemaining, setTimeRemaining] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
 
   const [decryptResult, setDecryptResult] = useState<{
     plaintext: string;
@@ -98,95 +99,115 @@ export default function AuctionDetailPage() {
     return () => { cancelled = true; };
   }, [auctionPDA, fetchAuctionByPDA, fetchBid, wallet.publicKey]);
 
-  const handlePlaceBid = async () => {
-    if (!bidAmount || !auctionPDA || !auction) return;
-    const amount = parseFloat(bidAmount);
-    if (amount < auction.minimumBid.toNumber() / LAMPORTS_PER_SOL) {
-      setTxStatus(`Bid must be at least ${auction.minimumBid.toNumber() / LAMPORTS_PER_SOL} SOL`);
-      clearStatus();
+  // Countdown timer effect
+  useEffect(() => {
+    if (!auction) {
+      setTimeRemaining(null);
       return;
     }
-    setTxStatus("Encrypting bid...");
-    setLastTxHash(null);
-    setIsSuccess(false);
-    try {
-      setTxStatus("Submitting transaction...");
-      const tx = await placeBid(auctionPDA, amount, amount);
-      if (tx) {
-        setTxStatus("Bid placed successfully! (Your bid is encrypted)");
-        setLastTxHash(tx);
-        setIsSuccess(true);
-        setBidAmount("");
-        await refreshData();
-        clearStatus();
+
+    const endTime = auction.endTime.toNumber();
+    const now = Math.floor(Date.now() / 1000);
+    const isExpired = endTime <= now;
+
+    if (isExpired || auction.isClosed) {
+      setTimeRemaining(null);
+      return;
+    }
+
+    const updateCountdown = () => {
+      const remaining = endTime - Math.floor(Date.now() / 1000);
+
+      if (remaining <= 0) {
+        setTimeRemaining(null);
+        return;
       }
-    } catch (err) {
-      console.error("Error placing bid:", err);
+
+      const days = Math.floor(remaining / 86400);
+      const hours = Math.floor((remaining % 86400) / 3600);
+      const minutes = Math.floor((remaining % 3600) / 60);
+      const seconds = remaining % 60;
+
+      setTimeRemaining({ days, hours, minutes, seconds });
+    };
+
+    updateCountdown();
+    const interval = setInterval(updateCountdown, 1000);
+
+    return () => clearInterval(interval);
+  }, [auction]);
+
+  const handlePlaceBid = async () => {
+    if (!auctionPDA || !bidAmount) return;
+    const amount = parseFloat(bidAmount);
+    if (isNaN(amount) || amount <= 0) {
+      setTxStatus("Invalid bid amount");
+      return;
+    }
+
+    setTxStatus("Placing bid...");
+    setLastTxHash(null);
+    const tx = await placeBid(auctionPDA, amount, amount);
+    if (tx) {
+      setLastTxHash(tx);
+      setTxStatus("Bid placed successfully!");
+      setIsSuccess(true);
+      await refreshData();
+      setBidAmount("");
+      clearStatus();
+    } else {
       setTxStatus(null);
     }
   };
 
   const handleCheckWin = async () => {
-    if (!auctionPDA) return;
+    if (!auctionPDA || !wallet.publicKey) return;
+    setDecrypting(true);
     setTxStatus("Checking win status...");
     setLastTxHash(null);
-    setIsSuccess(false);
-    const result = await checkWin(auctionPDA);
+
+    const result = await checkWin(auctionPDA, wallet.publicKey);
     if (result) {
-      setTxStatus("Encrypted comparison complete!");
-      setLastTxHash(result.tx);
+      setLastTxHash(result.txHash);
+      setTxStatus("Win status checked!");
+      setIsSuccess(true);
       await refreshData();
-      setDecrypting(true);
-      setTxStatus("Decrypting result...");
-      try {
-        const decrypted = await decryptIsWinner(result.isWinnerHandle);
-        if (decrypted) {
-          setIsWinner(decrypted.isWinner);
-          setDecryptResult({
-            plaintext: decrypted.plaintext,
-            ed25519Instructions: decrypted.ed25519Instructions,
-            isWinnerHandle: result.isWinnerHandle.toString(),
-          });
-          if (decrypted.isWinner) {
-            setTxStatus("🎉 Congratulations! You won the auction!");
-            setIsSuccess(true);
-          } else {
-            setTxStatus("Not the winner. You can withdraw your refund.");
-          }
-        } else {
-          setTxStatus("Could not decrypt result");
-        }
-      } catch (err) {
-        console.error("Decrypt error:", err);
-        setTxStatus("Decryption failed - check console");
-      }
-      setDecrypting(false);
-      clearStatus(10000);
+      clearStatus();
+    } else {
+      setTxStatus(null);
     }
+    setDecrypting(false);
+  };
+
+  const handleDecryptWinner = async () => {
+    if (!bid) return;
+    setDecrypting(true);
+    const result = await decryptIsWinner(auctionPDA!, wallet.publicKey!);
+    if (result) {
+      setDecryptResult(result);
+      setIsWinner(result.plaintext === "1");
+    }
+    setDecrypting(false);
   };
 
   const handleWithdraw = async () => {
     if (!auctionPDA || !decryptResult) return;
-    setTxStatus("Withdrawing...");
+    setTxStatus("Withdrawing funds...");
     setLastTxHash(null);
-    setIsSuccess(false);
     const tx = await withdrawBid(
       auctionPDA,
+      wallet.publicKey!,
       decryptResult.isWinnerHandle,
-      decryptResult.plaintext,
-      decryptResult.ed25519Instructions
+      decryptResult.plaintext
     );
     if (tx) {
-      if (isWinner) {
-        setTxStatus("Payment confirmed! Your bid stays in vault.");
-      } else {
-        setTxStatus("💰 Refund withdrawn successfully!");
-      }
       setLastTxHash(tx);
+      setTxStatus("Funds withdrawn successfully!");
       setIsSuccess(true);
       await refreshData();
-      setDecryptResult(null);
       clearStatus();
+    } else {
+      setTxStatus(null);
     }
   };
 
@@ -194,7 +215,6 @@ export default function AuctionDetailPage() {
     if (!auctionPDA) return;
     setTxStatus("Closing auction...");
     setLastTxHash(null);
-    setIsSuccess(false);
     const tx = await closeAuction(auctionPDA);
     if (tx) {
       setTxStatus("Auction closed successfully!");
@@ -207,42 +227,38 @@ export default function AuctionDetailPage() {
 
   if (pageLoading) {
     return (
-      <main className="pt-28 sm:pt-32 px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20 min-h-screen">
-        <div className="max-w-7xl mx-auto">
-          <div className="animate-pulse space-y-6">
-            <div className="h-4 bg-white/10 rounded w-32 mb-8" />
-            <div className="h-12 bg-white/10 rounded w-1/2 mb-4" />
-            <div className="h-6 bg-white/10 rounded w-1/3" />
+      <div className="space-y-6">
+          <div className="h-4 bg-neutral-800 rounded w-32 animate-pulse mb-6" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="space-y-4">
+              <div className="aspect-video w-full bg-neutral-900 rounded-lg animate-pulse" />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="h-24 bg-neutral-900 rounded-lg animate-pulse" />
+                <div className="h-24 bg-neutral-900 rounded-lg animate-pulse" />
+              </div>
+            </div>
+            <div className="space-y-4">
+              <div className="h-10 bg-neutral-900 rounded-lg w-3/4 animate-pulse" />
+              <div className="h-6 bg-neutral-900 rounded-lg w-1/4 animate-pulse" />
+              <div className="h-20 bg-neutral-900 rounded-lg w-full animate-pulse" />
+            </div>
           </div>
         </div>
-      </main>
     );
   }
 
   if (!auction) {
     return (
-      <main className="pt-28 sm:pt-32 px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20 min-h-screen">
-        <div className="max-w-7xl mx-auto">
-          <div className="text-center py-16 sm:py-20">
-            <div className="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-4 sm:mb-6 rounded-full bg-red-500/20 flex items-center justify-center">
-              <svg className="w-8 h-8 sm:w-10 sm:h-10 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </div>
-            <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Auction not found</h2>
-            <p className="text-white/50 mb-6 text-sm sm:text-base">The auction you're looking for doesn't exist</p>
-            <Link
-              href="/"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-indigo-500 hover:to-purple-500 transition-all text-sm sm:text-base"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-              </svg>
-              Back to auctions
+      <div className="space-y-6">
+            <Link href="/" className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors">
+              ← Back to All Auctions
             </Link>
+            <div className="rounded-lg border border-red-800 bg-red-950/30 p-8 text-center">
+              <div className="text-4xl mb-4">❌</div>
+              <div className="text-xl font-medium text-red-200 mb-2">Auction Not Found</div>
+              <p className="text-red-300/70">The auction you're looking for doesn't exist</p>
+            </div>
           </div>
-        </div>
-      </main>
     );
   }
 
@@ -253,6 +269,7 @@ export default function AuctionDetailPage() {
   const hasChecked = bid?.checked ?? false;
   const hasWithdrawn = bid?.withdrawn ?? false;
   const isOpen = auction.isOpen && !auction.isClosed;
+  const isExpired = auction.endTime.toNumber() <= Math.floor(Date.now() / 1000);
 
   const canPlaceBid = isOpen && !isEnded && !bid && wallet.publicKey;
   const canCheckWin = auction.isClosed && bid && !hasChecked && wallet.publicKey;
@@ -260,28 +277,22 @@ export default function AuctionDetailPage() {
   const canClose = isAuthority && !auction.isClosed && isEnded && auction.bidderCount > 0;
 
   return (
-    <main className="pt-28 sm:pt-32 px-4 sm:px-6 lg:px-8 pb-16 sm:pb-20 min-h-screen relative overflow-hidden">
-      {/* Animated background */}
-      <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-        <div className="w-96 h-96 bg-indigo-500/15 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute w-80 h-80 bg-purple-500/15 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-      </div>
-
-      <div className="max-w-7xl mx-auto relative z-10">
-        <Link
-          href="/"
-          className="inline-flex items-center gap-2 text-white/70 hover:text-white transition-all mb-6 sm:mb-8 group"
-        >
-          <svg className="w-5 h-5 group-hover:-translate-x-2 transition-transform duration-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
-          </svg>
-          <span className="font-bold">Back to auctions</span>
+    <div className="space-y-6">
+        {/* Back Button */}
+        <Link href="/" className="text-sm text-blue-400 hover:text-blue-300 flex items-center gap-2 transition-colors mb-6">
+          ← Back to All Auctions
         </Link>
 
-        {(error || txStatus) && (
+        {error && (
+          <div className="rounded border border-yellow-800 bg-yellow-950/50 text-yellow-200 px-4 py-3 mb-6">
+            {error}
+          </div>
+        )}
+
+        {txStatus && (
           <div className="mb-6">
             <TxStatus
-              status={error || txStatus || ""}
+              status={txStatus}
               txHash={lastTxHash}
               isError={!!error}
               isSuccess={isSuccess}
@@ -289,247 +300,329 @@ export default function AuctionDetailPage() {
           </div>
         )}
 
-        <div className="grid lg:grid-cols-2 gap-6 sm:gap-8 lg:gap-10">
-          {/* Left Column - Auction Info */}
-          <div className="space-y-6">
-            <div className="rounded-3xl p-6 sm:p-8 lg:p-10 border border-white/15 bg-white/10 backdrop-blur-2xl backdrop-saturate-150">
-              {/* Image */}
-              {auction.imageUrl && (
-                <div className="relative w-full h-48 sm:h-64 mb-6 rounded-2xl overflow-hidden bg-white/5 border border-white/10">
-                  <img
-                    src={auction.imageUrl}
-                    alt={auction.title || "Auction image"}
-                    className="w-full h-full object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
+        {/* Main Content Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Left: Image and Stats */}
+          <div className="space-y-4">
+            {/* Image */}
+            <div className="aspect-video w-full rounded-lg border border-neutral-800 bg-neutral-900 overflow-hidden">
+              {auction.imageUrl ? (
+                <img
+                  src={auction.imageUrl}
+                  alt={auction.title || "Auction image"}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="800" height="450"%3E%3Crect fill="%23171717" width="800" height="450"/%3E%3Ctext fill="%23525252" font-family="system-ui" font-size="24" x="50%25" y="50%25" text-anchor="middle" dominant-baseline="middle"%3EImage not available%3C/text%3E%3C/svg%3E';
+                  }}
+                />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-neutral-500">
+                  No image available
                 </div>
-              )}
-
-              <div className="flex items-center justify-between mb-4 sm:mb-6">
-                <span
-                  className={`px-3 sm:px-4 py-1.5 sm:py-2 rounded-full text-xs sm:text-sm font-black ${
-                    isOpen
-                      ? "bg-gradient-to-r from-green-500/20 to-emerald-500/20 text-green-400 border-2 border-green-500/40"
-                      : "bg-white/10 text-white/60 border-2 border-white/20"
-                  }`}
-                >
-                  {auction.isClosed ? "Closed" : isOpen ? "● Live" : "Ended"}
-                </span>
-                <div className="flex items-center gap-2">
-                  {auction.category && (
-                    <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-white/10 text-white/80 text-xs font-semibold rounded-full border border-white/20">
-                      {auction.category}
-                    </span>
-                  )}
-                  {isAuthority && (
-                    <span className="px-3 sm:px-4 py-1.5 sm:py-2 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-indigo-400 text-xs font-black rounded-full border-2 border-indigo-500/40">
-                      Authority
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <h1 className="text-2xl sm:text-3xl md:text-4xl font-black mb-3 sm:mb-4 bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-                {auction.title || `Auction #${auction.auctionId.toString().slice(-6)}`}
-              </h1>
-
-              {/* Description */}
-              {auction.description && (
-                <div className="mb-4 sm:mb-6">
-                  <p className="text-sm sm:text-base text-white/70 leading-relaxed">
-                    {auction.description}
-                  </p>
-                </div>
-              )}
-
-              {/* Tags */}
-              {auction.tags && auction.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-4 sm:mb-6">
-                  {auction.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="px-2.5 py-1 text-xs font-semibold text-indigo-300 bg-indigo-500/10 border border-indigo-500/30 rounded-full"
-                    >
-                      #{tag}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              <div className="space-y-3 sm:space-y-4 mb-6 sm:mb-8">
-                <div className="flex items-center justify-between py-3 sm:py-4 border-b-2 border-white/10">
-                  <span className="text-sm sm:text-base text-white/70 font-semibold">Bidders</span>
-                  <span className="text-xl sm:text-2xl font-black text-white">{auction.bidderCount}</span>
-                </div>
-                <div className="flex items-center justify-between py-3 sm:py-4 border-b-2 border-white/10">
-                  <span className="text-sm sm:text-base text-white/70 font-semibold">Minimum Bid</span>
-                  <span className="text-xl sm:text-2xl font-black text-white">{minBid.toFixed(3)} SOL</span>
-                </div>
-                <div className="flex items-center justify-between py-3 sm:py-4">
-                  <span className="text-sm sm:text-base text-white/70 font-semibold">End Time</span>
-                  <span className="text-xs sm:text-sm font-bold text-white/90">{endTime.toLocaleString()}</span>
-                </div>
-              </div>
-
-              {canClose && (
-                <button
-                  onClick={handleCloseAuction}
-                  disabled={loading}
-                  className="w-full px-6 sm:px-8 py-4 sm:py-5 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 text-white font-black rounded-2xl hover:shadow-2xl hover:shadow-indigo-500/50 transition-all duration-500 hover:scale-105 disabled:opacity-50 text-base sm:text-lg"
-                >
-                  {loading ? "Closing..." : "Close Auction"}
-                </button>
               )}
             </div>
+
+            {/* Auction Stats Cards */}
+            <div className="grid grid-cols-2 gap-4">
+              <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4">
+                <div className="text-xs text-neutral-500 mb-1">Auction ID</div>
+                <div className="text-2xl font-bold font-mono">#{auction.auctionId.toString().slice(-6)}</div>
+              </div>
+              <div className="rounded-lg border border-neutral-800 bg-neutral-900/50 p-4">
+                <div className="text-xs text-neutral-500 mb-1">Bidders</div>
+                <div className="text-2xl font-bold text-green-400">{auction.bidderCount}</div>
+              </div>
+            </div>
+
+            {/* End Time Info with Countdown */}
+            <div className="rounded-lg border border-neutral-700 bg-neutral-900/50 p-4 space-y-3">
+              <div className="text-sm font-medium mb-2">Valid Until</div>
+              <div className="flex items-center gap-2">
+                <span className="text-lg">
+                  {isExpired || auction.isClosed ? '⏰' : '📅'}
+                </span>
+                <div>
+                  <div className={isExpired || auction.isClosed ? 'text-red-400' : 'text-neutral-200'}>
+                    {endTime.toLocaleDateString('en-US', { 
+                      year: 'numeric', 
+                      month: 'long', 
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}
+                  </div>
+                  {(isExpired || auction.isClosed) && (
+                    <div className="text-xs text-red-400 mt-1">
+                      {auction.isClosed ? 'This auction has been closed' : 'This auction has expired'}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Countdown Timer */}
+              {!isExpired && !auction.isClosed && timeRemaining && (
+                <div className="pt-3 border-t border-neutral-800">
+                  <div className="text-xs text-neutral-500 mb-2">Time Remaining</div>
+                  <div className="flex items-center gap-3">
+                    {timeRemaining.days > 0 && (
+                      <div className="text-center">
+                        <div className="text-2xl font-bold text-orange-400">{timeRemaining.days}</div>
+                        <div className="text-xs text-neutral-500">days</div>
+                      </div>
+                    )}
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-orange-400">{timeRemaining.hours}</div>
+                      <div className="text-xs text-neutral-500">hours</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-orange-400">{timeRemaining.minutes}</div>
+                      <div className="text-xs text-neutral-500">minutes</div>
+                    </div>
+                    <div className="text-center">
+                      <div className="text-xl font-bold text-orange-300">{timeRemaining.seconds}</div>
+                      <div className="text-xs text-neutral-500">seconds</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Category and Tags */}
+            {(auction.category || (auction.tags && auction.tags.length > 0)) && (
+              <div className="rounded-lg border border-neutral-800 p-4 bg-neutral-900/30">
+                <div className="text-sm font-medium mb-3">📋 Details</div>
+                <div className="space-y-2 text-sm">
+                  {auction.category && (
+                    <div className="flex justify-between">
+                      <span className="text-neutral-500">Category</span>
+                      <span className="text-neutral-200">{auction.category}</span>
+                    </div>
+                  )}
+                  {auction.tags && auction.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-2">
+                      {auction.tags.map((tag, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 text-xs bg-neutral-800 text-neutral-300 rounded"
+                        >
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
-          {/* Right Column - Actions */}
+          {/* Right: Details */}
           <div className="space-y-6">
-            {!wallet.publicKey ? (
-            <div className="rounded-3xl p-6 sm:p-8 lg:p-10 text-center border border-white/15 bg-white/10 backdrop-blur-2xl backdrop-saturate-150">
-              <div className="w-20 h-20 sm:w-24 sm:h-24 mx-auto mb-4 sm:mb-6 rounded-3xl bg-gradient-to-br from-indigo-500/30 to-purple-500/30 flex items-center justify-center border-2 border-indigo-500/50 animate-pulse">
-                  <svg className="w-10 h-10 sm:w-12 sm:h-12 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                  </svg>
-                </div>
-                <h3 className="text-xl sm:text-2xl lg:text-3xl font-black text-white mb-2 sm:mb-3">Connect Wallet</h3>
-                <p className="text-white/60 text-sm sm:text-base lg:text-lg">Connect your wallet to participate in this auction</p>
-              </div>
-            ) : canPlaceBid ? (
-            <div className="rounded-3xl p-6 sm:p-8 lg:p-10 border border-white/15 bg-white/10 backdrop-blur-2xl backdrop-saturate-150">
-                <div className="flex items-center gap-3 sm:gap-4 mb-6 sm:mb-8">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-indigo-500/30 to-purple-500/30 flex items-center justify-center border-2 border-indigo-500/50">
-                    <svg className="w-7 h-7 sm:w-8 sm:h-8 text-indigo-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
-                    </svg>
+            {/* Title and Status Badge */}
+            <div>
+              <div className="flex items-start justify-between gap-4 mb-3">
+                <h1 className="text-4xl font-bold">{auction.title || `Auction #${auction.auctionId.toString().slice(-6)}`}</h1>
+                <div className={`px-4 py-2 rounded-lg border ${
+                  isOpen && !isExpired
+                    ? 'bg-green-900/50 border-green-700'
+                    : 'bg-neutral-800 border-neutral-700'
+                }`}>
+                  <div className={`text-2xl font-bold ${
+                    isOpen && !isExpired ? 'text-green-200' : 'text-neutral-400'
+                  }`}>
+                    {isOpen && !isExpired ? '● LIVE' : auction.isClosed ? 'CLOSED' : 'ENDED'}
                   </div>
-                  <div>
-                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Place Your Bid</h2>
-                    <p className="text-white/60 text-xs sm:text-sm lg:text-base font-semibold">Your bid will be encrypted</p>
-                  </div>
-                </div>
-                <div className="space-y-5 sm:space-y-6">
-                  <div>
-                    <label className="block text-sm font-black text-white/90 mb-2 sm:mb-3">
-                      Bid Amount (SOL)
-                    </label>
-                    <div className="relative">
-                      <input
-                        type="number"
-                        step="0.001"
-                        min={minBid}
-                        placeholder={minBid.toString()}
-                        className="w-full bg-white/5 border-2 border-white/10 rounded-2xl px-4 sm:px-5 py-4 sm:py-5 text-white placeholder:text-white/30 focus:outline-none focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/20 transition-all text-base sm:text-lg font-bold"
-                        value={bidAmount}
-                        onChange={(e) => setBidAmount(e.target.value)}
-                      />
-                      <div className="absolute right-4 sm:right-5 top-1/2 -translate-y-1/2 text-white/50 text-sm font-black">SOL</div>
-                    </div>
-                    <p className="mt-2 sm:mt-3 text-xs text-white/50 font-semibold">Minimum: {minBid.toFixed(3)} SOL</p>
-                  </div>
-                  <button
-                    onClick={handlePlaceBid}
-                    disabled={loading || !bidAmount}
-                    className="w-full px-6 sm:px-8 py-4 sm:py-5 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 text-white font-black rounded-2xl hover:shadow-2xl hover:shadow-indigo-500/50 transition-all duration-500 hover:scale-105 disabled:opacity-50 text-base sm:text-lg overflow-hidden relative group"
-                  >
-                    <span className="relative z-10">
-                      {loading ? "Placing bid..." : "Place Encrypted Bid"}
-                    </span>
-                    <div className="absolute inset-0 bg-gradient-to-r from-indigo-400 to-purple-400 opacity-0 group-hover:opacity-20 transition-opacity duration-500"></div>
-                  </button>
                 </div>
               </div>
-            ) : bid ? (
-            <div className="rounded-3xl p-6 sm:p-8 lg:p-10 space-y-5 sm:space-y-6 border border-white/15 bg-white/10 backdrop-blur-2xl backdrop-saturate-150">
-                <div className="flex items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
-                  <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-green-500/30 to-emerald-500/30 flex items-center justify-center border-2 border-green-500/50">
-                    <svg className="w-7 h-7 sm:w-8 sm:h-8 text-green-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                  </div>
-                  <div>
-                    <h2 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Your Bid</h2>
-                    <p className="text-white/60 text-xs sm:text-sm lg:text-base font-semibold">Deposit: {(bid.depositAmount.toNumber() / LAMPORTS_PER_SOL).toFixed(3)} SOL</p>
-                  </div>
+              {auction.description && (
+                <p className="text-lg text-neutral-300">{auction.description}</p>
+              )}
+            </div>
+
+            {/* Minimum Bid Info */}
+            <div className="rounded-lg border border-neutral-700 bg-neutral-900/50 p-4">
+              <div className="flex items-center justify-between mb-2">
+                <div className="text-sm font-medium">Minimum Bid</div>
+                <div className="text-2xl font-bold text-green-400">{minBid.toFixed(3)} SOL</div>
+              </div>
+              <div className="text-xs text-neutral-500 mt-1">
+                All bids are encrypted and remain private until auction closes
+              </div>
+            </div>
+
+            {/* Place Bid Section */}
+            {canPlaceBid && (
+              <div className="rounded-lg border border-purple-800/50 bg-purple-950/30 p-6">
+                <div className="text-lg font-medium text-purple-200 mb-3">
+                  💰 Place Encrypted Bid
                 </div>
+                <p className="text-sm text-neutral-400 mb-4">
+                  Enter your bid amount. Your bid will be encrypted and remain private until the auction closes.
+                </p>
+                <div className="space-y-3 mb-4">
+                  <input
+                    type="number"
+                    placeholder={`Minimum: ${minBid.toFixed(3)} SOL`}
+                    step="0.001"
+                    min={minBid}
+                    className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-4 py-3 text-neutral-200 focus:border-purple-600 focus:outline-none"
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                  />
+                </div>
+                <button
+                  onClick={handlePlaceBid}
+                  disabled={loading || !bidAmount || parseFloat(bidAmount) < minBid}
+                  className="w-full px-6 py-4 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? '⏳ Placing Bid...' : '💰 Place Encrypted Bid'}
+                </button>
+              </div>
+            )}
 
-                {hasChecked && (
-                  <div className={`p-5 sm:p-6 rounded-2xl border-2 ${isWinner ? "bg-gradient-to-br from-green-500/20 to-emerald-500/20 border-green-500/40" : "bg-white/10 border-white/20"}`}>
-                    <div className="flex items-center gap-3">
-                      {isWinner ? (
-                        <>
-                          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-                          </svg>
-                          <span className="text-green-400 font-black text-base sm:text-lg">Winner 🎉</span>
-                        </>
-                      ) : (
-                        <>
-                          <svg className="w-5 h-5 sm:w-6 sm:h-6 text-white/60" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                          <span className="text-white/60 font-black text-base sm:text-lg">Not Winner</span>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                )}
+            {/* Check Win Status */}
+            {canCheckWin && (
+              <div className="rounded-lg border border-blue-800/50 bg-blue-950/30 p-6">
+                <div className="text-lg font-medium text-blue-200 mb-3">
+                  🔍 Check Win Status
+                </div>
+                <p className="text-sm text-neutral-400 mb-4">
+                  Check if you won the auction. This will decrypt your win status on-chain.
+                </p>
+                <button
+                  onClick={handleCheckWin}
+                  disabled={loading || decrypting}
+                  className="w-full px-6 py-4 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {decrypting ? '⏳ Checking...' : '🔍 Check Win Status'}
+                </button>
+              </div>
+            )}
 
-                {canCheckWin && (
-                  <button
-                    onClick={handleCheckWin}
-                    disabled={loading || decrypting}
-                    className="w-full px-6 sm:px-8 py-4 sm:py-5 bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 text-white font-black rounded-2xl hover:shadow-2xl hover:shadow-indigo-500/50 transition-all duration-500 hover:scale-105 disabled:opacity-50 text-base sm:text-lg"
-                  >
-                    {decrypting ? "Decrypting..." : loading ? "Checking..." : "Check If You Won"}
-                  </button>
-                )}
+            {/* Decrypt Winner */}
+            {hasChecked && !decryptResult && (
+              <div className="rounded-lg border border-amber-800/50 bg-amber-950/30 p-6">
+                <div className="text-lg font-medium text-amber-200 mb-3">
+                  🔓 Decrypt Winner Status
+                </div>
+                <p className="text-sm text-neutral-400 mb-4">
+                  Decrypt your win status to see if you won the auction.
+                </p>
+                <button
+                  onClick={handleDecryptWinner}
+                  disabled={decrypting}
+                  className="w-full px-6 py-4 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {decrypting ? '⏳ Decrypting...' : '🔓 Decrypt Winner Status'}
+                </button>
+              </div>
+            )}
 
+            {/* Winner/Loser Status */}
+            {decryptResult && (
+              <div className={`rounded-lg border p-6 ${
+                isWinner
+                  ? 'border-green-800/50 bg-green-950/30'
+                  : 'border-red-800/50 bg-red-950/30'
+              }`}>
+                <div className={`text-lg font-medium mb-3 ${
+                  isWinner ? 'text-green-200' : 'text-red-200'
+                }`}>
+                  {isWinner ? '🎉 You Won!' : '😔 You Did Not Win'}
+                </div>
+                <p className="text-sm text-neutral-400 mb-4">
+                  {isWinner
+                    ? 'Congratulations! You had the highest bid. Your bid amount stays in the vault as payment.'
+                    : 'You did not win this auction. You can withdraw your bid amount.'}
+                </p>
                 {canWithdraw && (
                   <button
                     onClick={handleWithdraw}
                     disabled={loading}
-                    className={`w-full px-6 sm:px-8 py-4 sm:py-5 font-black rounded-2xl transition-all duration-500 hover:scale-105 shadow-2xl text-base sm:text-lg overflow-hidden relative group disabled:opacity-50 disabled:cursor-not-allowed ${
-                      isWinner
-                        ? "bg-gradient-to-r from-green-600 to-emerald-600 text-white hover:shadow-green-500/50"
-                        : "bg-gradient-to-r from-indigo-600 via-purple-600 to-indigo-600 text-white hover:shadow-indigo-500/50"
-                    }`}
+                    className="w-full px-6 py-4 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    <span className="relative z-10">
-                      {loading
-                        ? "Processing..."
-                        : isWinner
-                        ? "Confirm Payment (Bid Stays in Vault)"
-                        : "Withdraw Refund"}
-                    </span>
-                    <div 
-                      className={`absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-500 ${
-                        isWinner 
-                          ? "bg-gradient-to-r from-green-400 to-emerald-400" 
-                          : "bg-gradient-to-r from-indigo-400 to-purple-400"
-                      }`}
-                    />
+                    {loading ? '⏳ Withdrawing...' : isWinner ? '✅ Confirm Payment' : '💰 Withdraw Bid'}
                   </button>
                 )}
-
                 {hasWithdrawn && (
-                  <div className="p-5 sm:p-6 bg-gradient-to-br from-indigo-500/20 to-purple-500/20 border-2 border-indigo-500/40 rounded-2xl text-center">
-                    <p className="text-indigo-400 text-sm font-black">Withdrawn</p>
+                  <div className="text-sm text-neutral-400 text-center mt-2">
+                    ✓ Funds have been withdrawn
                   </div>
                 )}
               </div>
-            ) : (
-            <div className="rounded-3xl p-6 sm:p-8 lg:p-10 text-center border border-white/15 bg-white/10 backdrop-blur-2xl backdrop-saturate-150">
-                <p className="text-white/60 text-sm sm:text-base lg:text-lg font-semibold">
-                  {auction.isClosed ? "Auction is closed" : isEnded ? "Auction has ended" : "Connect wallet to place a bid"}
+            )}
+
+            {/* Already Bid */}
+            {bid && !hasChecked && (
+              <div className="rounded-lg border border-blue-800/50 bg-blue-950/30 p-6">
+                <div className="text-lg font-medium text-blue-200 mb-3">
+                  ✅ Bid Placed
+                </div>
+                <p className="text-sm text-neutral-400">
+                  You have already placed a bid in this auction. Wait for the auction to close to check your win status.
                 </p>
               </div>
             )}
+
+            {/* Connect Wallet */}
+            {!wallet.publicKey && (
+              <div className="rounded-lg border border-purple-800/50 bg-purple-950/30 p-6">
+                <div className="text-lg font-medium text-purple-200 mb-3">
+                  👆 Connect Wallet
+                </div>
+                <p className="text-sm text-neutral-400 mb-4">
+                  Connect your wallet to place bids and participate in this auction.
+                </p>
+                <div className="text-xs text-center text-neutral-500">
+                  Connect your wallet using the button in the top-right corner
+                </div>
+              </div>
+            )}
+
+            {/* Close Auction (Authority Only) */}
+            {canClose && (
+              <div className="rounded-lg border border-red-800/50 bg-red-950/30 p-6">
+                <div className="text-lg font-medium text-red-200 mb-3">
+                  🔒 Close Auction
+                </div>
+                <p className="text-sm text-neutral-400 mb-4">
+                  As the auction authority, you can close this auction now that it has ended.
+                </p>
+                <button
+                  onClick={handleCloseAuction}
+                  disabled={loading}
+                  className="w-full px-6 py-4 rounded-lg bg-red-600 hover:bg-red-700 text-white font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? '⏳ Closing...' : '🔒 Close Auction'}
+                </button>
+              </div>
+            )}
+
+            {/* Additional Info */}
+            <div className="rounded-lg border border-neutral-800 p-4 bg-neutral-900/30">
+              <div className="text-sm font-medium mb-3">📋 Auction Information</div>
+              <div className="space-y-2 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Privacy</span>
+                  <span className="text-green-400">✓ Encrypted Bids</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Blockchain</span>
+                  <span className="text-neutral-200">Solana</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-neutral-500">Encryption</span>
+                  <span className="text-green-400">✓ Inco Lightning</span>
+                </div>
+                {isAuthority && (
+                  <div className="flex justify-between">
+                    <span className="text-neutral-500">Your Role</span>
+                    <span className="text-purple-400">Authority</span>
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
         </div>
-      </div>
-    </main>
+    </div>
   );
 }
