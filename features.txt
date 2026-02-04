@@ -13,7 +13,7 @@ Discovery & Filtering
 - Price Range Filters — Filter by min/max bid
 - Time Filters — Ending soon, newly listed, etc.
 - Sort Options — Ending soon, highest activity, newest, etc.
-- Seller Profile — Seller name, bio, verification badge, rating
+- Seller Profile — Seller name, bio, verification badge, rating   
 
 User Experience
 - Bid History — Encrypted count of bids (without revealing amounts)

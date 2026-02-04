@@ -3,7 +3,7 @@ import { Connection, PublicKey, SystemProgram } from "@solana/web3.js";
 
 // Program ID from the deployed contract
 export const PROGRAM_ID = new PublicKey(
-  "8Z2LM7Anbe8N4LdPgDG9ri4wS8uhEHZggUzovdxBYYMH"
+  "GzVHoPfCw5gW2YN3hqGHg6pkgp7ygcNyhu3mjTqzMBRv"
 );
 
 // Inco Lightning Program ID

@@ -5,7 +5,7 @@ resolution = true
 skip-lint = false
 
 [programs.devnet]
-blind_auction = "8Z2LM7Anbe8N4LdPgDG9ri4wS8uhEHZggUzovdxBYYMH"
+blind_auction = "GzVHoPfCw5gW2YN3hqGHg6pkgp7ygcNyhu3mjTqzMBRv"
 
 [registry]
 url = "https://api.apr.dev"

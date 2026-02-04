@@ -40,10 +40,10 @@ export default function AuctionDetailPage() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState<{ days: number; hours: number; minutes: number; seconds: number } | null>(null);
 
+  const [isWinnerHandle, setIsWinnerHandle] = useState<bigint | null>(null);
   const [decryptResult, setDecryptResult] = useState<{
     plaintext: string;
     ed25519Instructions: unknown[];
-    isWinnerHandle: string;
   } | null>(null);
 
   const auctionPDA = useMemo(
@@ -69,11 +69,13 @@ export default function AuctionDetailPage() {
       if (!bidData) {
         setIsWinner(null);
         setDecryptResult(null);
+        setIsWinnerHandle(null);
       }
     } else {
       setBid(null);
       setIsWinner(null);
       setDecryptResult(null);
+      setIsWinnerHandle(null);
     }
     // Fetch comments
     const commentsData = await fetchComments(auctionPDA);
@@ -93,12 +95,14 @@ export default function AuctionDetailPage() {
           setBid(bidData);
           setIsWinner(null);
           setDecryptResult(null);
+          setIsWinnerHandle(null);
         }
       } else {
         if (!cancelled) {
           setBid(null);
           setIsWinner(null);
           setDecryptResult(null);
+          setIsWinnerHandle(null);
         }
       }
       // Fetch comments
@@ -177,9 +181,10 @@ export default function AuctionDetailPage() {
     setTxStatus("Checking win status...");
     setLastTxHash(null);
 
-    const result = await checkWin(auctionPDA, wallet.publicKey);
+    const result = await checkWin(auctionPDA);
     if (result) {
-      setLastTxHash(result.txHash);
+      setLastTxHash(result.tx);
+      setIsWinnerHandle(result.isWinnerHandle);
       setTxStatus("Win status checked!");
       setIsSuccess(true);
       await refreshData();
@@ -191,25 +196,28 @@ export default function AuctionDetailPage() {
   };
 
   const handleDecryptWinner = async () => {
-    if (!bid) return;
+    if (!bid || !isWinnerHandle) return;
     setDecrypting(true);
-    const result = await decryptIsWinner(auctionPDA!, wallet.publicKey!);
+    const result = await decryptIsWinner(isWinnerHandle);
     if (result) {
-      setDecryptResult(result);
-      setIsWinner(result.plaintext === "1");
+      setDecryptResult({
+        plaintext: result.plaintext,
+        ed25519Instructions: result.ed25519Instructions,
+      });
+      setIsWinner(result.isWinner);
     }
     setDecrypting(false);
   };
 
   const handleWithdraw = async () => {
-    if (!auctionPDA || !decryptResult) return;
+    if (!auctionPDA || !decryptResult || !isWinnerHandle) return;
     setTxStatus("Withdrawing funds...");
     setLastTxHash(null);
     const tx = await withdrawBid(
       auctionPDA,
-      wallet.publicKey!,
-      decryptResult.isWinnerHandle,
-      decryptResult.plaintext
+      isWinnerHandle.toString(),
+      decryptResult.plaintext,
+      decryptResult.ed25519Instructions
     );
     if (tx) {
       setLastTxHash(tx);
@@ -518,11 +526,11 @@ export default function AuctionDetailPage() {
                   🔓 Decrypt Winner Status
                 </div>
                 <p className="text-xs text-neutral-400 mb-3">
-                  Decrypt your win status to see if you won the auction.
+                  {isWinnerHandle ? 'Decrypt your win status to see if you won the auction.' : 'Please check win status first to get the handle.'}
                 </p>
                 <button
                   onClick={handleDecryptWinner}
-                  disabled={decrypting}
+                  disabled={decrypting || !isWinnerHandle}
                   className="w-full px-4 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {decrypting ? '⏳ Decrypting...' : '🔓 Decrypt Winner Status'}

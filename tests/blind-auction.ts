@@ -16,7 +16,7 @@ describe("blind-auction", () => {
   });
   anchor.setProvider(provider);
 
-  const programId = new PublicKey("8Z2LM7Anbe8N4LdPgDG9ri4wS8uhEHZggUzovdxBYYMH");
+  const programId = new PublicKey("GzVHoPfCw5gW2YN3hqGHg6pkgp7ygcNyhu3mjTqzMBRv");
   const program = anchor.workspace.blindAuction as Program<BlindAuction>;
   
   // Verify program ID matches

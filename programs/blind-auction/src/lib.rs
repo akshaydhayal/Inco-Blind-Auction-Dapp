@@ -9,7 +9,7 @@ pub mod state;
 
 use instructions::*;
 
-declare_id!("8Z2LM7Anbe8N4LdPgDG9ri4wS8uhEHZggUzovdxBYYMH"); 
+declare_id!("GzVHoPfCw5gW2YN3hqGHg6pkgp7ygcNyhu3mjTqzMBRv"); 
 
 #[program]
 pub mod blind_auction {

@@ -1,0 +1,65 @@
+[
+  {
+    "title": "Rare Vintage Rolex Submariner 1965",
+    "description": "Authentic Rolex Submariner from 1965 in excellent condition. Includes original box and papers. Verified by certified watchmaker. A true collector's piece with historical significance.",
+    "category": "Collectibles",
+    "tags": ["vintage", "luxury", "watches", "collectible"],
+    "imageUrl": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=600&fit=crop",
+    "minimumBid": 15.0,
+    "durationHours": 72
+  },
+  {
+    "title": "Original Picasso Sketch - Signed",
+    "description": "Authenticated original pencil sketch by Pablo Picasso, signed and dated 1952. Comes with certificate of authenticity from Sotheby's. Perfect for art collectors and investors.",
+    "category": "Art",
+    "tags": ["art", "picasso", "original", "signed", "investment"],
+    "imageUrl": "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=600&fit=crop",
+    "minimumBid": 50.0,
+    "durationHours": 120
+  },
+  {
+    "title": "MacBook Pro M3 Max 16-inch - Brand New",
+    "description": "Sealed in box MacBook Pro M3 Max with 16-inch display, 64GB RAM, 2TB SSD. Latest generation, never opened. Perfect for professionals and creators.",
+    "category": "Electronics",
+    "tags": ["laptop", "apple", "new", "tech", "professional"],
+    "imageUrl": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&h=600&fit=crop",
+    "minimumBid": 3.5,
+    "durationHours": 48
+  },
+  {
+    "title": "Vintage 1967 Gibson Les Paul Standard",
+    "description": "Rare 1967 Gibson Les Paul Standard in sunburst finish. All original hardware and electronics. Recently serviced and set up by professional luthier. A legendary guitar for serious musicians.",
+    "category": "Musical Instruments",
+    "tags": ["guitar", "vintage", "gibson", "musical", "collectible"],
+    "imageUrl": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop",
+    "minimumBid": 8.0,
+    "durationHours": 96
+  },
+  {
+    "title": "Luxury Yacht Charter - 7 Days Mediterranean",
+    "description": "Exclusive 7-day yacht charter in the Mediterranean for up to 8 guests. Includes captain, crew, meals, and fuel. Available dates: June-August 2024. Experience luxury sailing at its finest.",
+    "category": "Experiences",
+    "tags": ["yacht", "luxury", "travel", "experience", "mediterranean"],
+    "imageUrl": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
+    "minimumBid": 25.0,
+    "durationHours": 168
+  },
+  {
+    "title": "Rare First Edition Harry Potter - Philosopher's Stone",
+    "description": "First edition, first printing of Harry Potter and the Philosopher's Stone (UK edition) in excellent condition. One of only 500 copies printed. Includes original dust jacket. Extremely rare collector's item.",
+    "category": "Books",
+    "tags": ["books", "rare", "first-edition", "harry-potter", "collectible"],
+    "imageUrl": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=600&fit=crop",
+    "minimumBid": 5.0,
+    "durationHours": 60
+  },
+  {
+    "title": "Tesla Model S Plaid - 2023 - Low Miles",
+    "description": "2023 Tesla Model S Plaid with only 2,500 miles. Midnight Silver Metallic with white interior. Full self-driving capability included. Like new condition, all service records available.",
+    "category": "Vehicles",
+    "tags": ["tesla", "electric", "luxury", "car", "low-miles"],
+    "imageUrl": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=600&fit=crop",
+    "minimumBid": 12.0,
+    "durationHours": 144
+  }
+]
