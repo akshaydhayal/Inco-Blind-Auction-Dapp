@@ -291,6 +291,7 @@ export default function AuctionDetailPage() {
   const isExpired = auction.endTime.toNumber() <= Math.floor(Date.now() / 1000);
 
   const canPlaceBid = isOpen && !isEnded && !bid && wallet.publicKey;
+  // Contract requires auction.is_closed to check win status
   const canCheckWin = auction.isClosed && bid && !hasChecked && wallet.publicKey;
   const canWithdraw = hasChecked && !hasWithdrawn && decryptResult && wallet.publicKey;
   const canClose = isAuthority && !auction.isClosed && isEnded && auction.bidderCount > 0;
@@ -470,6 +471,25 @@ export default function AuctionDetailPage() {
               
             </div> 
 
+            {/* Close Auction - Authority Only */}
+            {canClose && (
+              <div className="rounded-lg border border-orange-800/50 bg-orange-950/30 p-4">
+                <div className="text-sm font-medium text-orange-200 mb-2">
+                  🔒 Close Auction
+                </div>
+                <p className="text-xs text-neutral-400 mb-3">
+                  As the auction authority, you can close this auction now that it has ended. This will allow bidders to check their win status.
+                </p>
+                <button
+                  onClick={handleCloseAuction}
+                  disabled={loading}
+                  className="w-full px-4 py-2.5 rounded-lg bg-orange-600 hover:bg-orange-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {loading ? '⏳ Closing...' : '🔒 Close Auction'}
+                </button>
+              </div>
+            )}
+
             {/* Place Bid Section */}
             {canPlaceBid && (
               <div className="rounded-lg border border-purple-800/50 bg-purple-950/30 p-4">
@@ -507,7 +527,9 @@ export default function AuctionDetailPage() {
                   🔍 Check Win Status
                 </div>
                 <p className="text-xs text-neutral-400 mb-3">
-                  Check if you won the auction. This will decrypt your win status on-chain.
+                  {auction.isClosed 
+                    ? 'The auction has been closed. Check if you won the auction. This will decrypt your win status on-chain.'
+                    : 'The auction has ended. Check if you won the auction. This will decrypt your win status on-chain.'}
                 </p>
                 <button
                   onClick={handleCheckWin}
@@ -552,35 +574,65 @@ export default function AuctionDetailPage() {
                 </div>
                 <p className="text-xs text-neutral-400 mb-3">
                   {isWinner
-                    ? 'Congratulations! You had the highest bid. Your bid amount stays in the vault as payment.'
-                    : 'You did not win this auction. You can withdraw your bid amount.'}
+                    ? `Congratulations! You had the highest bid. Your payment of ${bid ? (bid.depositAmount.toNumber() / LAMPORTS_PER_SOL).toFixed(4) : '0.0000'} SOL stays in the vault as payment.`
+                    : `You did not win this auction. You can withdraw your bid amount of ${bid ? (bid.depositAmount.toNumber() / LAMPORTS_PER_SOL).toFixed(4) : '0.0000'} SOL.`}
                 </p>
-                {canWithdraw && (
+                {canWithdraw && !isWinner && bid && (
                   <button
                     onClick={handleWithdraw}
                     disabled={loading}
                     className="w-full px-4 py-2.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
-                    {loading ? '⏳ Withdrawing...' : isWinner ? '✅ Confirm Payment' : '💰 Withdraw Bid'}
+                    {loading ? '⏳ Withdrawing...' : `💰 Withdraw ${(bid.depositAmount.toNumber() / LAMPORTS_PER_SOL).toFixed(4)} SOL`}
+                  </button>
+                )}
+                {canWithdraw && isWinner && (
+                  <button
+                    onClick={handleWithdraw}
+                    disabled={loading}
+                    className="w-full px-4 py-2.5 rounded-lg bg-green-600 hover:bg-green-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {loading ? '⏳ Confirming...' : '✅ Confirm Payment'}
                   </button>
                 )}
                 {hasWithdrawn && (
-                  <div className="text-xs text-neutral-400 text-center mt-2">
-                    ✓ Funds have been withdrawn
+                  <div className={`text-xs text-center mt-2 ${
+                    isWinner ? 'text-green-400' : 'text-neutral-400'
+                  }`}>
+                    {isWinner 
+                      ? '✓ Payment confirmed. Your bid remains in vault.'
+                      : `✓ Funds withdrawn: ${bid ? (bid.depositAmount.toNumber() / LAMPORTS_PER_SOL).toFixed(4) : '0.0000'} SOL has been refunded to your wallet.`}
                   </div>
                 )}
               </div>
             )}
 
-            {/* Already Bid */}
-            {bid && !hasChecked && (
+            {/* Already Bid - Show when bid placed but auction hasn't ended yet */}
+            {bid && !hasChecked && !isExpired && !auction.isClosed && (
               <div className="rounded-lg border border-blue-800/50 bg-blue-950/30 p-4">
                 <div className="text-sm font-medium text-blue-200 mb-2">
                   ✅ Bid Placed
                 </div>
                 <p className="text-xs text-neutral-400">
-                  You have already placed a bid in this auction. Wait for the auction to close to check your win status.
+                  You have already placed a bid in this auction. Wait for the auction to end to check your win status.
                 </p>
+              </div>
+            )}
+
+            {/* Auction Expired but Not Closed - Waiting for Authority */}
+            {bid && !hasChecked && isExpired && !auction.isClosed && wallet.publicKey && (
+              <div className="rounded-lg border border-yellow-800/50 bg-yellow-950/30 p-4">
+                <div className="text-sm font-medium text-yellow-200 mb-2">
+                  ⏰ Auction Ended - Waiting for Closure
+                </div>
+                <p className="text-xs text-neutral-400 mb-2">
+                  The auction has ended, but it needs to be closed by the auction authority before you can check your win status.
+                </p>
+                {isAuthority && (
+                  <p className="text-xs text-yellow-300 mb-3">
+                    💡 As the auction authority, you can close the auction using the button above.
+                  </p>
+                )}
               </div>
             )}
 
