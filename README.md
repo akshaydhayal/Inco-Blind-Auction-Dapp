@@ -1,162 +1,311 @@
-# Blind Auction
+# BlindBids - Privacy-Preserving Blind Auction on Solana
 
-A privacy-preserving blind auction system built on Solana using Inco Lightning rust SDK for encrypted computation. Bidders submit encrypted bids, and bid amounts remain completely private until the auction closes, ensuring complete privacy throughout the bidding process.
+A privacy-preserving blind auction system built on Solana using **Inco Lightning Rust SDK** for encrypted computation. Bidders submit encrypted bids that remain completely private until the auction closes, ensuring fairness and preventing bid manipulation.
 
-## Overview
+![BlindBids Banner](https://via.placeholder.com/1200x400/1a1a2e/ffffff?text=BlindBids+-+Private+Auctions+on+Solana)
 
-This program implements a blind auction where:
+## 🎥 Demo Video
 
-- Bid amounts are encrypted and hidden from everyone
-- Highest bid is determined through encrypted comparison
-- Winner's payment stays in vault, losers get refunded
-- Only bidders can decrypt their own bid and win status
+[![BlindBids Demo](https://via.placeholder.com/800x450/1a1a2e/ffffff?text=Click+to+Watch+Demo+Video)](YOUR_VIDEO_LINK_HERE)
 
-## Architecture
+> **[▶️ Watch Full Demo Video](YOUR_VIDEO_LINK_HERE)**
+
+---
+
+## 📸 Screenshots
+
+### Homepage - Active Auctions
+![Active Auctions](https://via.placeholder.com/800x500/1a1a2e/ffffff?text=Active+Auctions+Grid+View)
+
+*Browse active and closed auctions with real-time countdown timers*
+
+### Create Auction Modal
+![Create Auction](https://via.placeholder.com/800x500/1a1a2e/ffffff?text=Create+Auction+Modal)
+
+*Create new blind auctions with encrypted bids*
+
+### Auction Detail Page
+![Auction Detail](https://via.placeholder.com/800x500/1a1a2e/ffffff?text=Auction+Detail+Page)
+
+*View auction details, place encrypted bids, and participate in discussions*
+
+### Winner Determination Flow
+![Winner Flow](https://via.placeholder.com/800x500/1a1a2e/ffffff?text=Winner+Determination+%26+Refund+Flow)
+
+*Check win status, decrypt results, and withdraw funds*
+
+---
+
+## ✨ Features
+
+### Privacy Features (Powered by Inco Lightning)
+- **🔒 Encrypted Bids** - Bid amounts are encrypted and hidden from everyone
+- **🎭 Anonymous Bidding** - Only bidders can decrypt their own bid amounts
+- **⚖️ Fair Comparison** - Highest bid determined through encrypted comparison without revealing amounts
+- **🔐 Private Results** - Win/loss status is encrypted and only visible to the bidder
+
+### Auction Features
+- **📦 Rich Metadata** - Title, description, category, image, and tags for each auction
+- **⏱️ Time-Based Auctions** - Set precise end dates with real-time countdown timers
+- **💰 Minimum Bid Threshold** - Set minimum bid amounts to filter serious bidders
+- **💬 Comments System** - Discuss auctions with other users (max 500 characters)
+- **🔄 Refund System** - Automatic refunds for non-winning bidders
+
+### Frontend Features
+- **🎨 Modern Dark UI** - Beautiful, responsive dark-themed interface
+- **📱 Mobile Friendly** - Fully responsive design for all screen sizes
+- **⚡ Real-time Updates** - Live countdown timers and instant transaction feedback
+- **🔗 Wallet Integration** - Seamless Solana wallet connection (Phantom, Solflare, etc.)
+- **📋 Transaction Status** - Clear feedback with transaction links to Solana Explorer
+
+---
+
+## 🏗️ Architecture
 
 ### Privacy Model
 
-| Data | Visibility |
-|------|------------|
-| Bidder's bid amount | Encrypted (only bidder can decrypt) |
-| Highest bid | Encrypted (determined through encrypted comparison) |
-| Win/loss result | Encrypted (only bidder can decrypt) |
-| Refund amount | Encrypted (only bidder can decrypt) |
+| Data | Visibility | Who Can Decrypt |
+|------|------------|-----------------|
+| Bid Amount | Encrypted | Only the bidder |
+| Highest Bid | Encrypted | No one (used for comparison only) |
+| Win/Loss Status | Encrypted | Only the bidder |
+| Refund Amount | Encrypted | Only the bidder |
 
 ### Program Flow
 
 ```
-1. create_auction    -> Authority creates auction with minimum bid and end time
-2. place_bid         -> Bidder submits encrypted bid amount + deposit
-3. close_auction     -> Authority closes auction after end time
-4. check_win         -> Encrypted comparison: bid >= highest_bid
-5. withdraw_bid      -> Winner pays (bid stays in vault), losers get refund
+┌──────────────────────────────────────────────────────────────────────────────┐
+│                           BLIND AUCTION FLOW                                  │
+├──────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│  1. CREATE AUCTION                                                           │
+│     ├── Authority creates auction                                            │
+│     ├── Sets minimum bid, end time, metadata                                 │
+│     └── Auction is now OPEN for bids                                         │
+│                                                                              │
+│  2. PLACE BID (can be done multiple times by different bidders)              │
+│     ├── Bidder encrypts their bid amount locally                             │
+│     ├── Deposits SOL to vault                                                │
+│     ├── Encrypted bid stored on-chain                                        │
+│     └── Highest bid updated (encrypted comparison)                           │
+│                                                                              │
+│  3. AUCTION ENDS (time passes)                                               │
+│     └── Bidding stops, waiting for authority to close                        │
+│                                                                              │
+│  4. CLOSE AUCTION (by authority only)                                        │
+│     ├── Authority finalizes the auction                                      │
+│     └── Enables winner checking and withdrawals                              │
+│                                                                              │
+│  5. CHECK WIN STATUS (each bidder does this)                                 │
+│     ├── Encrypted comparison: bid >= highest_bid                             │
+│     ├── Result stored as encrypted boolean                                   │
+│     └── Permission granted to bidder to decrypt                              │
+│                                                                              │
+│  6. DECRYPT & WITHDRAW                                                       │
+│     ├── Bidder decrypts their win status                                     │
+│     ├── Winner: Confirms payment (bid stays in vault)                        │
+│     └── Losers: Withdraw full refund                                         │
+│                                                                              │
+└──────────────────────────────────────────────────────────────────────────────┘
 ```
 
-### Key Encrypted Operations
+### Key Encrypted Operations (Inco Lightning)
 
-- `new_euint128`: Create encrypted value from ciphertext
-- `e_ge`: Encrypted greater-than-or-equal comparison
-- `e_select`: Encrypted conditional selection
-- `allow`: Grant decryption permission to specific address
-- `is_validsignature`: Verify decryption proof on-chain
+| Operation | Purpose |
+|-----------|---------|
+| `new_euint128` | Create encrypted value from ciphertext |
+| `e_ge` | Encrypted greater-than-or-equal comparison |
+| `e_select` | Encrypted conditional selection |
+| `allow` | Grant decryption permission to specific address |
+| `is_validsignature` | Verify decryption proof on-chain |
 
-## Account Structures
+---
 
-### Auction
+## 📊 Account Structures
+
+### Auction Account
 
 ```rust
 pub struct Auction {
-    pub authority: Pubkey,
-    pub auction_id: u64,
-    pub minimum_bid: u64,
-    pub end_time: i64,
-    pub bidder_count: u32,
-    pub is_open: bool,
-    pub is_closed: bool,
-    pub highest_bid_handle: u128,  // Encrypted highest bid
-    pub winner_determined: bool,
+    pub authority: Pubkey,           // Creator of the auction
+    pub auction_id: u64,             // Unique identifier
+    pub minimum_bid: u64,            // Minimum bid in lamports
+    pub end_time: i64,               // Unix timestamp when auction ends
+    pub bidder_count: u32,           // Number of bidders
+    pub is_open: bool,               // Can still place bids?
+    pub is_closed: bool,             // Closed by authority?
+    pub highest_bid_handle: u128,    // Encrypted highest bid
+    pub winner_determined: bool,     // Winner determined?
     pub bump: u8,
+    // Metadata
+    pub title: String,               // Max 100 chars
+    pub description: String,         // Max 1000 chars
+    pub category: String,            // Max 50 chars
+    pub image_url: String,           // Max 200 chars
+    pub tags: Vec<String>,           // Max 10 tags, 30 chars each
 }
 ```
 
-### Bid
+### Bid Account
 
 ```rust
 pub struct Bid {
-    pub auction: Pubkey,
-    pub bidder: Pubkey,
-    pub deposit_amount: u64,        // SOL deposited
+    pub auction: Pubkey,             // Associated auction
+    pub bidder: Pubkey,              // Bidder's public key
+    pub deposit_amount: u64,         // SOL deposited (lamports)
     pub bid_amount_handle: u128,     // Encrypted bid amount
-    pub is_winner_handle: u128,      // Encrypted: is this the highest bid?
-    pub refund_amount_handle: u128,   // Encrypted refund (0 for winner)
-    pub checked: bool,
-    pub withdrawn: bool,
+    pub is_winner_handle: u128,      // Encrypted win status
+    pub refund_amount_handle: u128,  // Encrypted refund amount
+    pub checked: bool,               // Win status checked?
+    pub withdrawn: bool,             // Funds withdrawn?
     pub bump: u8,
 }
 ```
 
-## Prerequisites
+### Comment Account
+
+```rust
+pub struct Comment {
+    pub auction: Pubkey,             // Associated auction
+    pub commenter: Pubkey,           // Commenter's public key
+    pub comment: String,             // Comment text (max 500 chars)
+    pub timestamp: i64,              // Unix timestamp
+    pub bump: u8,
+}
+```
+
+---
+
+## 🛠️ Tech Stack
+
+- **Blockchain**: Solana
+- **Smart Contract Framework**: Anchor 0.31.1
+- **Privacy Layer**: Inco Lightning SDK
+- **Frontend**: Next.js 14 (App Router)
+- **Styling**: Tailwind CSS
+- **Wallet**: Solana Wallet Adapter
+- **Language**: Rust (Contracts) + TypeScript (Frontend)
+
+---
+
+## 📋 Prerequisites
 
 - Rust 1.70+
 - Solana CLI 1.18+
 - Anchor 0.31.1
 - Node.js 18+
-- Yarn
+- Bun or Yarn
 
-## Installation
+---
+
+## 🚀 Installation
+
+### 1. Clone Repository
 
 ```bash
-# Clone repository
 git clone https://github.com/Inco-fhevm/raffle-example-solana
 cd raffle-example-solana
+```
 
-# Install dependencies
+### 2. Install Dependencies
+
+```bash
+# Install Anchor dependencies
 yarn install
 
-# Build program
+# Install frontend dependencies
+cd app
+bun install
+```
+
+### 3. Build Program
+
+```bash
 anchor build
 ```
 
-## Deployment
+### 4. Get Program Address
 
 ```bash
-# Get program keypair address
 solana address -k target/deploy/blind_auction-keypair.json
+```
 
-# Update program ID in lib.rs and Anchor.toml with the address above
+### 5. Update Program ID
 
-# Rebuild with correct program ID
+Update the program ID in:
+- `programs/blind-auction/src/lib.rs`
+- `Anchor.toml`
+
+### 6. Rebuild & Deploy
+
+```bash
 anchor build
-
-# Deploy to devnet
 anchor deploy --provider.cluster devnet
 ```
 
-## Testing
+---
+
+## 🎮 Running the Frontend
 
 ```bash
-# Run tests (after deployment)
+cd app
+
+# Install dependencies
+bun install
+
+# Start development server
+bun run dev
+```
+
+The app will be available at `http://localhost:3000`
+
+---
+
+## 🧪 Testing
+
+```bash
+# Run Anchor tests
 anchor test
 ```
 
 ### Test Scenarios
 
-The test suite covers:
+| Scenario | Description |
+|----------|-------------|
+| Winner Flow | Bidder places highest bid → wins → confirms payment |
+| Loser Flow | Bidder places lower bid → loses → withdraws refund |
+| Comments | Users can add comments to auctions |
+| Close Auction | Authority closes auction after end time |
 
-1. **Winner Flow**: Bidder places highest bid, wins, and confirms payment
-2. **Loser Flow**: Bidder places lower bid, loses, and withdraws refund
+---
 
-## Usage
+## 💻 Client Integration
 
-### Client Integration
+### Encrypting and Placing a Bid
 
 ```typescript
 import { encryptValue } from "@inco/solana-sdk/encryption";
-import { decrypt } from "@inco/solana-sdk/attested-decrypt";
 import { hexToBuffer } from "@inco/solana-sdk/utils";
 
-// Encrypt bid amount
-const myBid = 0.1; // SOL
+// Encrypt bid amount (e.g., 0.1 SOL)
+const myBid = 0.1;
 const encryptedBid = await encryptValue(BigInt(myBid * 1e9));
 
 // Place bid
 await program.methods
   .placeBid(hexToBuffer(encryptedBid), new BN(myBid * 1e9))
-  .accounts({...})
+  .accounts({
+    bidder: wallet.publicKey,
+    auction: auctionPDA,
+    bid: bidPDA,
+    vault: vaultPDA,
+    systemProgram: SystemProgram.programId,
+    incoLightningProgram: INCO_LIGHTNING_ID,
+  })
   .rpc();
-
-// Decrypt result after checking
-const result = await decrypt([isWinnerHandle], {
-  address: wallet.publicKey,
-  signMessage: async (msg) => nacl.sign.detached(msg, wallet.secretKey),
-});
-
-const isWinner = result.plaintexts[0] === "1";
 ```
 
-### Allow Pattern for Decryption
-
-To decrypt encrypted values, the program must grant permission via the `allow` instruction. This is done through remaining accounts:
+### Checking Win Status
 
 ```typescript
 const [allowancePda] = PublicKey.findProgramAddressSync(
@@ -166,7 +315,13 @@ const [allowancePda] = PublicKey.findProgramAddressSync(
 
 await program.methods
   .checkWin()
-  .accounts({...})
+  .accounts({
+    bidder: wallet.publicKey,
+    auction: auctionPDA,
+    bid: bidPDA,
+    systemProgram: SystemProgram.programId,
+    incoLightningProgram: INCO_LIGHTNING_ID,
+  })
   .remainingAccounts([
     { pubkey: allowancePda, isSigner: false, isWritable: true },
     { pubkey: wallet.publicKey, isSigner: false, isWritable: false },
@@ -174,22 +329,39 @@ await program.methods
   .rpc();
 ```
 
-### On-Chain Verification
-
-Bid withdrawal requires on-chain verification of the decryption proof:
+### Decrypting Result
 
 ```typescript
-const result = await decrypt([isWinnerHandle], {...});
+import { decrypt } from "@inco/solana-sdk/attested-decrypt";
 
+const result = await decrypt([isWinnerHandle], {
+  address: wallet.publicKey,
+  signMessage: async (msg) => nacl.sign.detached(msg, wallet.secretKey),
+});
+
+const isWinner = result.plaintexts[0] === "1";
+```
+
+### Withdrawing Funds
+
+```typescript
 // Build transaction with Ed25519 signature + withdraw instruction
 const tx = new Transaction();
 result.ed25519Instructions.forEach(ix => tx.add(ix));
-tx.add(withdrawInstruction);
+tx.add(await program.methods
+  .withdrawBid(isWinnerHandle, isWinnerPlaintext)
+  .accounts({...})
+  .instruction()
+);
+
+await sendAndConfirmTransaction(connection, tx, [wallet]);
 ```
 
-## Dependencies
+---
 
-### Rust
+## 📦 Dependencies
+
+### Rust (Smart Contract)
 
 ```toml
 [dependencies]
@@ -197,23 +369,97 @@ anchor-lang = "0.31.1"
 inco-lightning = { version = "0.1.4", features = ["cpi"] }
 ```
 
-## Setting up Frontend:
+### Frontend
 
-Navigate to the app folder:
-
-```bash
-cd app
+```json
+{
+  "@coral-xyz/anchor": "^0.31.1",
+  "@inco/solana-sdk": "latest",
+  "@solana/wallet-adapter-react": "^0.15.35",
+  "@solana/web3.js": "^1.98.0",
+  "next": "15.1.4",
+  "react": "^19.0.0",
+  "tailwindcss": "^3.4.17"
+}
 ```
 
-Install the dependencies:
-```bash
-bun install
+---
+
+## 📁 Project Structure
+
+```
+raffle-example-solana/
+├── programs/
+│   └── blind-auction/
+│       ├── src/
+│       │   ├── instructions/
+│       │   │   ├── create_auction.rs
+│       │   │   ├── place_bid.rs
+│       │   │   ├── close_auction.rs
+│       │   │   ├── check_win.rs
+│       │   │   ├── withdraw_bid.rs
+│       │   │   ├── add_comment.rs
+│       │   │   └── mod.rs
+│       │   ├── state/
+│       │   │   └── mod.rs
+│       │   ├── error.rs
+│       │   └── lib.rs
+│       └── Cargo.toml
+├── app/
+│   └── src/
+│       ├── app/
+│       │   ├── page.tsx           # Homepage (auction listing)
+│       │   ├── auction/[id]/
+│       │   │   └── page.tsx       # Auction detail page
+│       │   └── layout.tsx
+│       ├── components/
+│       │   ├── navbar.tsx
+│       │   ├── create-auction-modal.tsx
+│       │   ├── wallet-button.tsx
+│       │   └── ...
+│       ├── hooks/
+│       │   └── useAuction.ts      # Auction interactions hook
+│       └── lib/
+│           ├── program.ts         # Program helpers
+│           └── idl.json           # Anchor IDL
+├── tests/
+│   └── blind-auction.ts
+├── Anchor.toml
+└── README.md
 ```
 
-Start the app:
+---
 
-```bash
-bun run dev
-```
+## 🔐 Security Considerations
 
-The app will start on localhost:3000
+1. **Bid Privacy**: All bid amounts are encrypted using Inco Lightning's FHE (Fully Homomorphic Encryption)
+2. **On-Chain Verification**: Decryption proofs are verified on-chain before fund withdrawal
+3. **Authority Control**: Only the auction authority can close auctions
+4. **Time-Locked**: Auctions cannot be closed before the end time
+5. **PDA Security**: All accounts use Program Derived Addresses for security
+
+---
+
+## 🤝 Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License.
+
+---
+
+## 🔗 Links
+
+- [Inco Network](https://inco.org)
+- [Solana](https://solana.com)
+- [Anchor Framework](https://www.anchor-lang.com)
+
+---
+
+<p align="center">
+  <strong>Built with ❤️ using Inco Lightning on Solana</strong>
+</p>
