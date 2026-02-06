@@ -95,7 +95,19 @@ export default function AuctionDetailPage() {
           setBid(bidData);
           setIsWinner(null);
           setDecryptResult(null);
-          setIsWinnerHandle(null);
+          // Restore handle from bid if it exists (user already checked win status)
+          // Check if isWinnerHandle is non-zero (means checkWin was already called)
+          if (bidData && bidData.isWinnerHandle) {
+            const handleValue = BigInt(bidData.isWinnerHandle.toString());
+            if (handleValue > BigInt(0)) {
+              setIsWinnerHandle(handleValue);
+              console.log('Restored isWinnerHandle from bid:', handleValue.toString());
+            } else {
+              setIsWinnerHandle(null);
+            }
+          } else {
+            setIsWinnerHandle(null);
+          }
         }
       } else {
         if (!cancelled) {
@@ -541,18 +553,18 @@ export default function AuctionDetailPage() {
               </div>
             )}
 
-            {/* Decrypt Winner */}
-            {hasChecked && !decryptResult && (
+            {/* Decrypt Winner - Shows when checked and no result yet, OR when handle exists but no result */}
+            {hasChecked && !decryptResult && isWinnerHandle && (
               <div className="rounded-lg border border-amber-800/50 bg-amber-950/30 p-4">
                 <div className="text-sm font-medium text-amber-200 mb-2">
                   🔓 Decrypt Winner Status
                 </div>
                 <p className="text-xs text-neutral-400 mb-3">
-                  {isWinnerHandle ? 'Decrypt your win status to see if you won the auction.' : 'Please check win status first to get the handle.'}
+                  Decrypt your win status to see if you won the auction.
                 </p>
                 <button
                   onClick={handleDecryptWinner}
-                  disabled={decrypting || !isWinnerHandle}
+                  disabled={decrypting}
                   className="w-full px-4 py-2.5 rounded-lg bg-amber-600 hover:bg-amber-700 text-white font-semibold text-sm disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {decrypting ? '⏳ Decrypting...' : '🔓 Decrypt Winner Status'}

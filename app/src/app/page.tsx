@@ -102,8 +102,8 @@ export default function HomePage() {
     const isExpired = endTime <= now;
     const isOpen = auction.account.isOpen && !auction.account.isClosed;
     const isActive = isOpen && !isExpired;
-    
-    return (
+
+  return (
       <Link 
         key={auction.publicKey.toBase58()} 
         href={`/auction/${auction.publicKey.toBase58()}`}
@@ -152,7 +152,7 @@ export default function HomePage() {
             </div>
             <div className="text-sm font-medium text-neutral-300">
               {auction.account.bidderCount} {auction.account.bidderCount === 1 ? "bidder" : "bidders"}
-            </div>
+              </div>
           </div>
           <div className="pt-2 flex items-center justify-between gap-2">
             <div className="text-xs text-blue-400 group-hover:text-blue-300 flex items-center gap-1">
@@ -209,7 +209,7 @@ export default function HomePage() {
                         : 'bg-neutral-800 text-neutral-400'
                     }`}>
                       {activeAuctions.length}
-                    </span>
+                  </span>
                   )}
                 </button>
                 <button
@@ -275,8 +275,8 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-              ))}
-            </div>
+            ))}
+          </div>
           ) : (
             <div className="rounded-lg border border-neutral-800 p-6 pt-2">
               {activeTab === 'active' && (

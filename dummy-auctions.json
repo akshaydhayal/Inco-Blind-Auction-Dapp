@@ -1,65 +1,137 @@
 [
   {
-    "title": "Rare Vintage Rolex Submariner 1965",
-    "description": "Authentic Rolex Submariner from 1965 in excellent condition. Includes original box and papers. Verified by certified watchmaker. A true collector's piece with historical significance.",
-    "category": "Collectibles",
-    "tags": ["vintage", "luxury", "watches", "collectible"],
-    "imageUrl": "https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=800&h=600&fit=crop",
-    "minimumBid": 15.0,
-    "durationHours": 72
-  },
-  {
-    "title": "Original Picasso Sketch - Signed",
-    "description": "Authenticated original pencil sketch by Pablo Picasso, signed and dated 1952. Comes with certificate of authenticity from Sotheby's. Perfect for art collectors and investors.",
-    "category": "Art",
-    "tags": ["art", "picasso", "original", "signed", "investment"],
-    "imageUrl": "https://images.unsplash.com/photo-1541961017774-22349e4a1262?w=800&h=600&fit=crop",
-    "minimumBid": 50.0,
-    "durationHours": 120
-  },
-  {
-    "title": "MacBook Pro M3 Max 16-inch - Brand New",
-    "description": "Sealed in box MacBook Pro M3 Max with 16-inch display, 64GB RAM, 2TB SSD. Latest generation, never opened. Perfect for professionals and creators.",
+    "title": "Sony WH-1000XM5 Headphones - Like New",
+    "description": "Premium noise-cancelling wireless headphones. Used only for 2 months, in perfect condition. Includes original case, cables, and box. Amazing sound quality and 30-hour battery life.",
     "category": "Electronics",
-    "tags": ["laptop", "apple", "new", "tech", "professional"],
-    "imageUrl": "https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=800&h=600&fit=crop",
-    "minimumBid": 3.5,
+    "tags": ["headphones", "sony", "wireless", "audio"],
+    "imageUrl": "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=800&h=600&fit=crop",
+    "minimumBid": 0.15,
     "durationHours": 48
   },
   {
-    "title": "Vintage 1967 Gibson Les Paul Standard",
-    "description": "Rare 1967 Gibson Les Paul Standard in sunburst finish. All original hardware and electronics. Recently serviced and set up by professional luthier. A legendary guitar for serious musicians.",
-    "category": "Musical Instruments",
-    "tags": ["guitar", "vintage", "gibson", "musical", "collectible"],
-    "imageUrl": "https://images.unsplash.com/photo-1493225457124-a3eb161ffa5f?w=800&h=600&fit=crop",
-    "minimumBid": 8.0,
+    "title": "Nintendo Switch OLED + 5 Games Bundle",
+    "description": "Nintendo Switch OLED in white, excellent condition. Comes with Zelda TOTK, Mario Kart 8, Animal Crossing, Smash Bros, and Pokemon Scarlet. All games are physical copies. Extra Joy-Con included.",
+    "category": "Gaming",
+    "tags": ["nintendo", "gaming", "console", "bundle"],
+    "imageUrl": "https://images.unsplash.com/photo-1578303512597-81e6cc155b3e?w=800&h=600&fit=crop",
+    "minimumBid": 0.25,
+    "durationHours": 72
+  },
+  {
+    "title": "Canon EOS R50 Mirrorless Camera Kit",
+    "description": "Nearly new Canon EOS R50 with 18-45mm lens kit. Perfect for content creators and photography beginners. Includes extra battery, 64GB SD card, and camera bag. Only 500 shutter count.",
+    "category": "Electronics",
+    "tags": ["camera", "canon", "photography", "mirrorless"],
+    "imageUrl": "https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&h=600&fit=crop",
+    "minimumBid": 0.4,
     "durationHours": 96
   },
   {
-    "title": "Luxury Yacht Charter - 7 Days Mediterranean",
-    "description": "Exclusive 7-day yacht charter in the Mediterranean for up to 8 guests. Includes captain, crew, meals, and fuel. Available dates: June-August 2024. Experience luxury sailing at its finest.",
-    "category": "Experiences",
-    "tags": ["yacht", "luxury", "travel", "experience", "mediterranean"],
-    "imageUrl": "https://images.unsplash.com/photo-1544551763-46a013bb70d5?w=800&h=600&fit=crop",
-    "minimumBid": 25.0,
-    "durationHours": 168
+    "title": "Nike Air Jordan 1 Retro High - Chicago",
+    "description": "Brand new, deadstock Air Jordan 1 Retro High OG 'Chicago' colorway. Size US 10. Never worn, with original box and receipt. A timeless classic sneaker.",
+    "category": "Fashion",
+    "tags": ["sneakers", "nike", "jordan", "streetwear"],
+    "imageUrl": "https://images.unsplash.com/photo-1542291026-7eec264c27ff?w=800&h=600&fit=crop",
+    "minimumBid": 0.2,
+    "durationHours": 48
   },
   {
-    "title": "Rare First Edition Harry Potter - Philosopher's Stone",
-    "description": "First edition, first printing of Harry Potter and the Philosopher's Stone (UK edition) in excellent condition. One of only 500 copies printed. Includes original dust jacket. Extremely rare collector's item.",
-    "category": "Books",
-    "tags": ["books", "rare", "first-edition", "harry-potter", "collectible"],
-    "imageUrl": "https://images.unsplash.com/photo-1544947950-fa07a98d237f?w=800&h=600&fit=crop",
-    "minimumBid": 5.0,
+    "title": "Keychron Q1 Pro Mechanical Keyboard",
+    "description": "Premium wireless mechanical keyboard with Gateron Pro Brown switches. QMK/VIA compatible for full customization. Includes extra keycaps set and coiled cable. Barely used.",
+    "category": "Electronics",
+    "tags": ["keyboard", "mechanical", "tech", "workspace"],
+    "imageUrl": "https://images.unsplash.com/photo-1587829741301-dc798b83add3?w=800&h=600&fit=crop",
+    "minimumBid": 0.1,
+    "durationHours": 36
+  },
+  {
+    "title": "DJI Mini 3 Drone - Fly More Combo",
+    "description": "Compact drone perfect for travel and beginners. Fly More Combo includes 3 batteries, charging hub, and carrying case. 4K HDR video, 38-min flight time. Registered and ready to fly.",
+    "category": "Electronics",
+    "tags": ["drone", "dji", "photography", "gadget"],
+    "imageUrl": "https://images.unsplash.com/photo-1473968512647-3e447244af8f?w=800&h=600&fit=crop",
+    "minimumBid": 0.35,
+    "durationHours": 72
+  },
+  {
+    "title": "Vintage Levi's 501 Denim Jacket - 1980s",
+    "description": "Authentic vintage Levi's 501 denim jacket from the 1980s. Great fade and patina. Size Medium. Classic American style that never goes out of fashion.",
+    "category": "Fashion",
+    "tags": ["vintage", "levis", "denim", "fashion"],
+    "imageUrl": "https://images.unsplash.com/photo-1576995853123-5a10305d93c0?w=800&h=600&fit=crop",
+    "minimumBid": 0.08,
+    "durationHours": 48
+  },
+  {
+    "title": "iPad Air M1 64GB + Apple Pencil 2",
+    "description": "iPad Air with M1 chip in Space Gray. 64GB WiFi model with Apple Pencil 2nd generation. Perfect for students and artists. Includes Magic Keyboard case. Light scratches on back.",
+    "category": "Electronics",
+    "tags": ["ipad", "apple", "tablet", "creative"],
+    "imageUrl": "https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=800&h=600&fit=crop",
+    "minimumBid": 0.3,
     "durationHours": 60
   },
   {
-    "title": "Tesla Model S Plaid - 2023 - Low Miles",
-    "description": "2023 Tesla Model S Plaid with only 2,500 miles. Midnight Silver Metallic with white interior. Full self-driving capability included. Like new condition, all service records available.",
-    "category": "Vehicles",
-    "tags": ["tesla", "electric", "luxury", "car", "low-miles"],
-    "imageUrl": "https://images.unsplash.com/photo-1560958089-b8a1929cea89?w=800&h=600&fit=crop",
-    "minimumBid": 12.0,
-    "durationHours": 144
+    "title": "Breville Barista Express Espresso Machine",
+    "description": "Semi-automatic espresso machine with built-in grinder. Makes cafe-quality espresso at home. Includes tamper, milk jug, and cleaning kit. Used for 6 months, well maintained.",
+    "category": "Home",
+    "tags": ["coffee", "espresso", "kitchen", "appliance"],
+    "imageUrl": "https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?w=800&h=600&fit=crop",
+    "minimumBid": 0.25,
+    "durationHours": 72
+  },
+  {
+    "title": "Complete Pokemon Card Collection - Vintage",
+    "description": "Collection of 200+ Pokemon cards from Base Set, Jungle, and Fossil. Includes 3 holographic rares. All cards are in protective sleeves. Great for collectors or nostalgic millennials.",
+    "category": "Collectibles",
+    "tags": ["pokemon", "cards", "vintage", "collectible"],
+    "imageUrl": "https://images.unsplash.com/photo-1613771404784-3a5686aa2be3?w=800&h=600&fit=crop",
+    "minimumBid": 0.15,
+    "durationHours": 96
+  },
+  {
+    "title": "Herman Miller Aeron Chair - Size B",
+    "description": "Ergonomic office chair, the gold standard for comfort. Size B (medium), graphite color. Fully loaded with lumbar support and adjustable arms. Some wear on armrests, otherwise excellent.",
+    "category": "Furniture",
+    "tags": ["chair", "office", "ergonomic", "workspace"],
+    "imageUrl": "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=800&h=600&fit=crop",
+    "minimumBid": 0.4,
+    "durationHours": 120
+  },
+  {
+    "title": "Kindle Paperwhite + 50 eBooks Collection",
+    "description": "Latest Kindle Paperwhite with 6.8\" display and warm light. Includes 50 pre-loaded classic literature eBooks. Perfect for book lovers. Fabric cover included.",
+    "category": "Electronics",
+    "tags": ["kindle", "ebook", "reading", "amazon"],
+    "imageUrl": "https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=800&h=600&fit=crop",
+    "minimumBid": 0.08,
+    "durationHours": 48
+  },
+  {
+    "title": "Fjallraven Kanken Backpack - Navy Blue",
+    "description": "Classic Fjallraven Kanken backpack in navy blue. Brand new with tags. Durable and water-resistant, perfect for everyday carry or school. Timeless Scandinavian design.",
+    "category": "Fashion",
+    "tags": ["backpack", "fashion", "travel", "accessories"],
+    "imageUrl": "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?w=800&h=600&fit=crop",
+    "minimumBid": 0.05,
+    "durationHours": 36
+  },
+  {
+    "title": "Sonos One SL Speaker Pair - White",
+    "description": "Two Sonos One SL speakers in white, perfect for stereo setup. Rich, room-filling sound. Works with any Sonos system. Like new condition, selling as a pair.",
+    "category": "Electronics",
+    "tags": ["speaker", "sonos", "audio", "smart-home"],
+    "imageUrl": "https://images.unsplash.com/photo-1545454675-3531b543be5d?w=800&h=600&fit=crop",
+    "minimumBid": 0.2,
+    "durationHours": 60
+  },
+  {
+    "title": "Settlers of Catan + All Expansions Bundle",
+    "description": "Complete Settlers of Catan collection including base game and all 5 expansions. Seafarers, Cities & Knights, Traders & Barbarians, Explorers & Pirates, and Legend. Perfect for board game nights.",
+    "category": "Games",
+    "tags": ["boardgame", "catan", "tabletop", "family"],
+    "imageUrl": "https://images.unsplash.com/photo-1610890716171-6b1bb98ffd09?w=800&h=600&fit=crop",
+    "minimumBid": 0.06,
+    "durationHours": 48
   }
 ]
