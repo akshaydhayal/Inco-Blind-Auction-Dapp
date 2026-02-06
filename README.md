@@ -9,10 +9,10 @@ A privacy-preserving blind auction system built on Solana using **Inco Lightning
 ## 📺 Project Demo
 
 ### 🎥 Presentation Video
-[https://drive.google.com/file/d/14YcDFWejDX3U-uRmo3FxuUtVDqCmWaf-/view?usp=drive_link](https://drive.google.com/file/d/14YcDFWejDX3U-uRmo3FxuUtVDqCmWaf-/view?usp=drive_link)
+[https://drive.google.com/file/d/1DAnLrWUbq2rM3QHL3s7IFWsOVsyJcZWj/view?usp=drive_link](https://drive.google.com/file/d/1DAnLrWUbq2rM3QHL3s7IFWsOVsyJcZWj/view?usp=drive_link)
 
 
-### 📸 Product Screenshots
+### 📸 Project Screenshots
 
 <div align="center">
    <p><b>1. Landing Page</b></p>
