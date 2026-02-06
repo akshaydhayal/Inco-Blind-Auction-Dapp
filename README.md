@@ -16,26 +16,141 @@ A privacy-preserving blind auction system built on Solana using **Inco Lightning
 
 <div align="center">
   <p><b>1. Homepage - Active Auctions</b></p>
-  <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction.png" alt="Recipients Management" width="600">
+  <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction.png" alt="Homepage" width="600">
   <br>
   <p><i>Browse active and closed auctions with real-time countdown timers</i></p>
   
   <p><b>2. Auction Detail Page</b></p>
-  <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(3).png" alt="Execute Payroll" width="600">
+  <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(3).png" alt="Auction Detail" width="600">
   <br>
   <p><i>View auction details, place encrypted bids, and participate in discussions</i></p>
 
   <p><b>3. Create Auction Modal</b></p>
-  <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(2).png" alt="Execute Payroll" width="600">
+  <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(2).png" alt="Create Auction" width="600">
   <br>
   <p><i>Create new blind auctions with encrypted bids</i></p>
-
-  <p><b>4. Winner Determination Flow</b></p>
-  <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(2).png" alt="Execute Payroll" width="600">
-  <br>
-  <p><i>Check win status, decrypt results, and withdraw funds</i></p>
   
 </div>
+
+---
+
+### 🏆 Post-Auction Flow: Winner Determination & Withdrawal
+
+This visual guide shows the complete flow after an auction ends - from closing the auction to determining winners and processing payments/refunds.
+
+<div align="center">
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════════╗
+║                        🏁 AUCTION END-TO-WITHDRAW FLOW                            ║
+╚═══════════════════════════════════════════════════════════════════════════════════╝
+
+   ┌─────────────────────┐
+   │  ⏰ AUCTION ENDED   │
+   │  Waiting for Close  │
+   └──────────┬──────────┘
+              │
+              ▼
+   ┌─────────────────────┐
+   │  🔐 CLOSE AUCTION   │
+   │  (By Auctioneer)    │
+   └──────────┬──────────┘
+              │
+              ▼
+   ┌─────────────────────┐
+   │  🔍 CHECK WIN       │
+   │  STATUS             │
+   └──────────┬──────────┘
+              │
+              ▼
+   ┌─────────────────────┐
+   │  🔓 DECRYPT WINNER  │
+   │  STATUS             │
+   └──────────┬──────────┘
+              │
+       ┌──────┴──────┐
+       ▼             ▼
+┌─────────────┐ ┌─────────────┐
+│  🎉 WINNER  │ │  😔 LOSER   │
+│  Confirm    │ │  Withdraw   │
+│  Payment    │ │  Refund     │
+└─────────────┘ └─────────────┘
+```
+
+</div>
+
+#### Phase-by-Phase Screenshots
+
+<table align="center">
+<tr>
+<td align="center" width="50%">
+<b>Phase 1: Auction Ended - Waiting for Closure</b>
+<br><br>
+<img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(5).png" alt="Phase 1" width="400">
+<br>
+<i>Auction time has expired. Waiting for the auctioneer to close the auction.</i>
+</td>
+<td align="center" width="50%">
+<b>Phase 2: Close Auction (Auctioneer)</b>
+<br><br>
+<img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(6).png" alt="Phase 2" width="400">
+<br>
+<i>Auctioneer closes the auction to enable winner determination.</i>
+</td>
+</tr>
+<tr>
+<td colspan="2" align="center">
+<h3>⬇️</h3>
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+<b>Phase 3: Check Win Status</b>
+<br><br>
+<img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(10).png" alt="Phase 3" width="400">
+<br>
+<i>Bidders check their encrypted win status on-chain.</i>
+</td>
+<td align="center" width="50%">
+<b>Phase 4: Decrypt Winner Status</b>
+<br><br>
+<img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(9).png" alt="Phase 4" width="400">
+<br>
+<i>Decrypt the encrypted result to reveal win/loss status.</i>
+</td>
+</tr>
+<tr>
+<td colspan="2" align="center">
+<h3>⬇️</h3>
+</td>
+</tr>
+<tr>
+<td align="center" width="50%">
+<b>Phase 5a: 🎉 You Won!</b>
+<br><br>
+<img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(7).png" alt="Winner" width="400">
+<br>
+<i>Winner confirms payment - bid amount stays in vault as payment.</i>
+</td>
+<td align="center" width="50%">
+<b>Phase 5b: 😔 You Did Not Win</b>
+<br><br>
+<img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(8).png" alt="Loser" width="400">
+<br>
+<i>Non-winners can withdraw their full bid amount as refund.</i>
+</td>
+</tr>
+</table>
+
+#### Flow Summary
+
+| Step | Action | Who | What Happens |
+|------|--------|-----|--------------|
+| 1️⃣ | Auction Ends | System | Time expires, bidding stops |
+| 2️⃣ | Close Auction | Auctioneer | Finalizes auction, enables withdrawals |
+| 3️⃣ | Check Win Status | Each Bidder | Encrypted comparison: your bid vs highest |
+| 4️⃣ | Decrypt Result | Each Bidder | Reveals your personal win/loss status |
+| 5️⃣ | Confirm/Withdraw | Each Bidder | Winner pays, losers get refund |
 
 ---
 
