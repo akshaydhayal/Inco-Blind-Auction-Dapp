@@ -1,38 +1,41 @@
 # BlindBids - Privacy-Preserving Blind Auction on Solana
 
+Live Project Link: [https://inco-blind-auction.vercel.app](https://inco-blind-auction.vercel.app)
+
 A privacy-preserving blind auction system built on Solana using **Inco Lightning Rust SDK** for encrypted computation. Bidders submit encrypted bids that remain completely private until the auction closes, ensuring fairness and preventing bid manipulation.
 
-![BlindBids Banner](https://via.placeholder.com/1200x400/1a1a2e/ffffff?text=BlindBids+-+Private+Auctions+on+Solana)
-
-## 🎥 Demo Video
-
-[![BlindBids Demo](https://via.placeholder.com/800x450/1a1a2e/ffffff?text=Click+to+Watch+Demo+Video)](YOUR_VIDEO_LINK_HERE)
-
-> **[▶️ Watch Full Demo Video](YOUR_VIDEO_LINK_HERE)**
 
 ---
+## 📺 Project Demo
 
-## 📸 Screenshots
+### 🎥 Presentation Video
+[https://drive.google.com/file/d/14YcDFWejDX3U-uRmo3FxuUtVDqCmWaf-/view?usp=drive_link](https://drive.google.com/file/d/14YcDFWejDX3U-uRmo3FxuUtVDqCmWaf-/view?usp=drive_link)
 
-### Homepage - Active Auctions
-![Active Auctions](https://via.placeholder.com/800x500/1a1a2e/ffffff?text=Active+Auctions+Grid+View)
 
-*Browse active and closed auctions with real-time countdown timers*
+### 📸 Product Screenshots
 
-### Create Auction Modal
-![Create Auction](https://via.placeholder.com/800x500/1a1a2e/ffffff?text=Create+Auction+Modal)
+<div align="center">
+  <p><b>1. Homepage - Active Auctions</b></p>
+  <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction.png" alt="Recipients Management" width="600">
+  <br>
+  <p><i>Browse active and closed auctions with real-time countdown timers</i></p>
+  
+  <p><b>2. Auction Detail Page</b></p>
+  <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(3).png" alt="Execute Payroll" width="600">
+  <br>
+  <p><i>View auction details, place encrypted bids, and participate in discussions</i></p>
 
-*Create new blind auctions with encrypted bids*
+  <p><b>3. Create Auction Modal</b></p>
+  <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(2).png" alt="Execute Payroll" width="600">
+  <br>
+  <p><i>Create new blind auctions with encrypted bids</i></p>
 
-### Auction Detail Page
-![Auction Detail](https://via.placeholder.com/800x500/1a1a2e/ffffff?text=Auction+Detail+Page)
-
-*View auction details, place encrypted bids, and participate in discussions*
-
-### Winner Determination Flow
-![Winner Flow](https://via.placeholder.com/800x500/1a1a2e/ffffff?text=Winner+Determination+%26+Refund+Flow)
-
-*Check win status, decrypt results, and withdraw funds*
+  <p><b>4. Winner Determination Flow</b></p>
+  <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(2).png" alt="Execute Payroll" width="600">
+  <br>
+  <p><i>Check win status, decrypt results, and withdraw funds</i></p>
+  
+</div>
 
 ---
 
