@@ -15,17 +15,21 @@ A privacy-preserving blind auction system built on Solana using **Inco Lightning
 ### 📸 Product Screenshots
 
 <div align="center">
-  <p><b>1. Homepage - Active Auctions</b></p>
+   <p><b>1. Landing Page</b></p>
+  <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(11).png" alt="Create Auction" width="600">
+  <br>  
+  
+  <p><b>2. Homepage - Active Auctions</b></p>
   <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction.png" alt="Homepage" width="600">
   <br>
   <p><i>Browse active and closed auctions with real-time countdown timers</i></p>
   
-  <p><b>2. Auction Detail Page</b></p>
+  <p><b>3. Auction Detail Page</b></p>
   <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(3).png" alt="Auction Detail" width="600">
   <br>
   <p><i>View auction details, place encrypted bids, and participate in discussions</i></p>
 
-  <p><b>3. Create Auction Modal</b></p>
+  <p><b>4. Create Auction Modal</b></p>
   <img src="https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp/blob/main/demo/Blind-Auction%20(2).png" alt="Create Auction" width="600">
   <br>
   <p><i>Create new blind auctions with encrypted bids</i></p>
@@ -49,27 +53,25 @@ This visual guide shows the complete flow after an auction ends - from closing t
    │  ⏰ AUCTION ENDED   │
    │  Waiting for Close  │
    └──────────┬──────────┘
-              │
-              ▼
+   │
+   ▼
    ┌─────────────────────┐
    │  🔐 CLOSE AUCTION   │
    │  (By Auctioneer)    │
    └──────────┬──────────┘
-              │
-              ▼
-   ┌─────────────────────┐
-   │  🔍 CHECK WIN       │
-   │  STATUS             │
-   └──────────┬──────────┘
-              │
-              ▼
-   ┌─────────────────────┐
-   │  🔓 DECRYPT WINNER  │
-   │  STATUS             │
-   └──────────┬──────────┘
-              │
-       ┌──────┴──────┐
-       ▼             ▼
+   │
+   ▼
+   ┌──────────────────────┐
+   │  🔍CHECK WIN STATUS  │
+   └──────────┬───────────┘
+  │
+  ▼
+   ┌──────────────────────────┐
+   │ 🔓 DECRYPT WINNER STATUS │
+   └────────────┬─────────────┘
+   │
+  ┌───────┴──────┐
+  ▼              ▼
 ┌─────────────┐ ┌─────────────┐
 │  🎉 WINNER  │ │  😔 LOSER   │
 │  Confirm    │ │  Withdraw   │
@@ -238,62 +240,6 @@ This visual guide shows the complete flow after an auction ends - from closing t
 | `is_validsignature` | Verify decryption proof on-chain |
 
 ---
-
-## 📊 Account Structures
-
-### Auction Account
-
-```rust
-pub struct Auction {
-    pub authority: Pubkey,           // Creator of the auction
-    pub auction_id: u64,             // Unique identifier
-    pub minimum_bid: u64,            // Minimum bid in lamports
-    pub end_time: i64,               // Unix timestamp when auction ends
-    pub bidder_count: u32,           // Number of bidders
-    pub is_open: bool,               // Can still place bids?
-    pub is_closed: bool,             // Closed by authority?
-    pub highest_bid_handle: u128,    // Encrypted highest bid
-    pub winner_determined: bool,     // Winner determined?
-    pub bump: u8,
-    // Metadata
-    pub title: String,               // Max 100 chars
-    pub description: String,         // Max 1000 chars
-    pub category: String,            // Max 50 chars
-    pub image_url: String,           // Max 200 chars
-    pub tags: Vec<String>,           // Max 10 tags, 30 chars each
-}
-```
-
-### Bid Account
-
-```rust
-pub struct Bid {
-    pub auction: Pubkey,             // Associated auction
-    pub bidder: Pubkey,              // Bidder's public key
-    pub deposit_amount: u64,         // SOL deposited (lamports)
-    pub bid_amount_handle: u128,     // Encrypted bid amount
-    pub is_winner_handle: u128,      // Encrypted win status
-    pub refund_amount_handle: u128,  // Encrypted refund amount
-    pub checked: bool,               // Win status checked?
-    pub withdrawn: bool,             // Funds withdrawn?
-    pub bump: u8,
-}
-```
-
-### Comment Account
-
-```rust
-pub struct Comment {
-    pub auction: Pubkey,             // Associated auction
-    pub commenter: Pubkey,           // Commenter's public key
-    pub comment: String,             // Comment text (max 500 chars)
-    pub timestamp: i64,              // Unix timestamp
-    pub bump: u8,
-}
-```
-
----
-
 ## 🛠️ Tech Stack
 
 - **Blockchain**: Solana
@@ -321,19 +267,19 @@ pub struct Comment {
 ### 1. Clone Repository
 
 ```bash
-git clone https://github.com/Inco-fhevm/raffle-example-solana
-cd raffle-example-solana
+git clone https://github.com/akshaydhayal/Inco-Blind-Auction-Dapp
+cd Inco-Blind-Auction-Dapp
 ```
 
 ### 2. Install Dependencies
 
 ```bash
 # Install Anchor dependencies
-yarn install
+npm install
 
 # Install frontend dependencies
 cd app
-bun install
+npm install
 ```
 
 ### 3. Build Program
@@ -379,104 +325,6 @@ The app will be available at `http://localhost:3000`
 
 ---
 
-## 🧪 Testing
-
-```bash
-# Run Anchor tests
-anchor test
-```
-
-### Test Scenarios
-
-| Scenario | Description |
-|----------|-------------|
-| Winner Flow | Bidder places highest bid → wins → confirms payment |
-| Loser Flow | Bidder places lower bid → loses → withdraws refund |
-| Comments | Users can add comments to auctions |
-| Close Auction | Authority closes auction after end time |
-
----
-
-## 💻 Client Integration
-
-### Encrypting and Placing a Bid
-
-```typescript
-import { encryptValue } from "@inco/solana-sdk/encryption";
-import { hexToBuffer } from "@inco/solana-sdk/utils";
-
-// Encrypt bid amount (e.g., 0.1 SOL)
-const myBid = 0.1;
-const encryptedBid = await encryptValue(BigInt(myBid * 1e9));
-
-// Place bid
-await program.methods
-  .placeBid(hexToBuffer(encryptedBid), new BN(myBid * 1e9))
-  .accounts({
-    bidder: wallet.publicKey,
-    auction: auctionPDA,
-    bid: bidPDA,
-    vault: vaultPDA,
-    systemProgram: SystemProgram.programId,
-    incoLightningProgram: INCO_LIGHTNING_ID,
-  })
-  .rpc();
-```
-
-### Checking Win Status
-
-```typescript
-const [allowancePda] = PublicKey.findProgramAddressSync(
-  [handleBuffer, walletPublicKey.toBuffer()],
-  INCO_LIGHTNING_PROGRAM_ID
-);
-
-await program.methods
-  .checkWin()
-  .accounts({
-    bidder: wallet.publicKey,
-    auction: auctionPDA,
-    bid: bidPDA,
-    systemProgram: SystemProgram.programId,
-    incoLightningProgram: INCO_LIGHTNING_ID,
-  })
-  .remainingAccounts([
-    { pubkey: allowancePda, isSigner: false, isWritable: true },
-    { pubkey: wallet.publicKey, isSigner: false, isWritable: false },
-  ])
-  .rpc();
-```
-
-### Decrypting Result
-
-```typescript
-import { decrypt } from "@inco/solana-sdk/attested-decrypt";
-
-const result = await decrypt([isWinnerHandle], {
-  address: wallet.publicKey,
-  signMessage: async (msg) => nacl.sign.detached(msg, wallet.secretKey),
-});
-
-const isWinner = result.plaintexts[0] === "1";
-```
-
-### Withdrawing Funds
-
-```typescript
-// Build transaction with Ed25519 signature + withdraw instruction
-const tx = new Transaction();
-result.ed25519Instructions.forEach(ix => tx.add(ix));
-tx.add(await program.methods
-  .withdrawBid(isWinnerHandle, isWinnerPlaintext)
-  .accounts({...})
-  .instruction()
-);
-
-await sendAndConfirmTransaction(connection, tx, [wallet]);
-```
-
----
-
 ## 📦 Dependencies
 
 ### Rust (Smart Contract)
@@ -493,11 +341,8 @@ inco-lightning = { version = "0.1.4", features = ["cpi"] }
 {
   "@coral-xyz/anchor": "^0.31.1",
   "@inco/solana-sdk": "latest",
-  "@solana/wallet-adapter-react": "^0.15.35",
   "@solana/web3.js": "^1.98.0",
   "next": "15.1.4",
-  "react": "^19.0.0",
-  "tailwindcss": "^3.4.17"
 }
 ```
 
@@ -545,39 +390,3 @@ raffle-example-solana/
 ├── Anchor.toml
 └── README.md
 ```
-
----
-
-## 🔐 Security Considerations
-
-1. **Bid Privacy**: All bid amounts are encrypted using Inco Lightning's FHE (Fully Homomorphic Encryption)
-2. **On-Chain Verification**: Decryption proofs are verified on-chain before fund withdrawal
-3. **Authority Control**: Only the auction authority can close auctions
-4. **Time-Locked**: Auctions cannot be closed before the end time
-5. **PDA Security**: All accounts use Program Derived Addresses for security
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
-
----
-
-## 🔗 Links
-
-- [Inco Network](https://inco.org)
-- [Solana](https://solana.com)
-- [Anchor Framework](https://www.anchor-lang.com)
-
----
-
-<p align="center">
-  <strong>Built with ❤️ using Inco Lightning on Solana</strong>
-</p>
